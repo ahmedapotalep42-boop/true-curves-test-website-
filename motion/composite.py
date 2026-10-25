@@ -2,7 +2,7 @@
 
 usage: python3 composite.py
   reads work/source.mp4, work/clips.json and out/*.mp4|.mov, writes
-  out/preview.mp4 (graphics only) and out/preview_subtitled.mp4 (+ out/subtitles.ass)
+  out/preview.mp4 (graphics + SFX) and out/preview_subtitled.mp4 (+ out/subtitles.ass)
 """
 import glob
 import json
@@ -28,7 +28,11 @@ for name, c in clips.items():
     graph.append(f"[{n}:v]scale={W}:{H}:flags=lanczos,setpts=PTS-STARTPTS+{a}/TB,tpad=stop_mode=clone:stop_duration=1[c{n}]")
     graph.append(f"{prev}[c{n}]overlay=eof_action=pass:enable='between(t,{a},{b})'[v{n}]")
     prev = f'[v{n}]'
-enc = ['-c:v', 'libx264', '-crf', '18', '-preset', 'medium', '-pix_fmt', 'yuv420p', '-c:a', 'copy', '-movflags', '+faststart']
-subprocess.run(args + ['-filter_complex', ';'.join(graph), '-map', prev, '-map', '0:a', *enc, 'out/preview.mp4'], check=True)
+args += ['-i', 'work/sfx_track.wav']  # synthesized SFX bed from sfx.py
+graph.append(f"[0:a][{n + 1}:a]amix=inputs=2:normalize=0:duration=first,alimiter=limit=0.97[aout]")
+enc = ['-c:v', 'libx264', '-crf', '18', '-preset', 'medium', '-pix_fmt', 'yuv420p', '-movflags', '+faststart']
+subprocess.run(args + ['-filter_complex', ';'.join(graph), '-map', prev, '-map', '[aout]', *enc,
+                       '-c:a', 'aac', '-b:a', '192k', 'out/preview.mp4'], check=True)
+enc += ['-c:a', 'copy']
 subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-i', 'out/preview.mp4', '-vf',
                 'ass=out/subtitles.ass:fontsdir=/usr/share/fonts/opentype/inter', *enc, 'out/preview_subtitled.mp4'], check=True)
