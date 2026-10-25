@@ -1,5 +1,7 @@
 """Build minimal word-by-word subtitles (ASS + SRT) from word timings.
 
+No captions while a graphic is on screen.
+
 usage: python3 subtitles.py work/words.json work/clips.json out/subtitles
 """
 import json
@@ -61,14 +63,16 @@ for n, p in enumerate(phrases):
     start = p[0]['start']
     nxt = phrases[n + 1][0]['start'] if n + 1 < len(phrases) else p[-1]['end'] + 1
     end = min(p[-1]['end'] + 0.35, nxt)
-    style = 'Graphic' if in_graphic(start) else 'Face'
+    if in_graphic(start):
+        continue  # graphics carry their own text on screen
+    style = 'Face'
     parts = []
     for w in p:
         a = int((w['start'] - start) * 1000)
         # each word: hidden + soft blur, then fades/sharpens in on its own start time
         parts.append(f"{{\\alpha&HFF&\\blur3\\t({a},{a + 160},\\alpha&H00&\\blur0)}}{w['text']}")
     events.append(f"Dialogue: 0,{ts(start)},{ts(end)},{style},,0,0,0,,{{\\fad(0,120)}}" + ' '.join(parts))
-    srt.append(f"{n + 1}\n{srt_ts(start)} --> {srt_ts(end)}\n{' '.join(w['text'] for w in p)}\n")
+    srt.append(f"{len(srt) + 1}\n{srt_ts(start)} --> {srt_ts(end)}\n{' '.join(w['text'] for w in p)}\n")
 
 open(out_base + '.ass', 'w').write(head + '\n'.join(events) + '\n')
 open(out_base + '.srt', 'w').write('\n'.join(srt))

@@ -412,9 +412,40 @@ function volume(o){
     wv.forEach((w,i)=>w.style.opacity=(i/3)<lvl-.05?1:.12);
     chips.forEach(x=>pop(x.el,eBack(seg(t,x.at,x.at+.35),1.8)));camPush(t,.004)}}
 
+
+/* ================= scene: opening hook (transparent, over the footage) ================= */
+function hookScene(o){
+  const R=root(),T=o.t;
+  const kick=h('div',{class:'chip abs',style:{left:'110px',top:'110px',fontSize:'34px',background:'#121212',color:'#fff',boxShadow:extrude('#000',6,.3)},html:'Have you ever said&hellip;'},R);
+  const bub=slab(R,{x:420,y:330,w:620,h:190,color:'#FFFFFF',dark:C('soft-d'),radius:60,depth:14,floor:false});
+  h('div',{class:'abs',style:{right:'-26px',bottom:'34px',width:'64px',height:'64px',background:'#fff',transform:'rotate(45deg)',borderRadius:'10px',boxShadow:`8px 8px 0 ${C('soft-d')}`,zIndex:-1}},bub.card);
+  const wl=h('div',{class:'abs',style:{inset:0,display:'flex',alignItems:'center',justifyContent:'center',gap:'22px',fontSize:'78px',fontWeight:800,letterSpacing:'-.03em'}},bub.face);
+  const bw=[['&ldquo;I&rsquo;m',T.im],['so',T.so],['OCD&rdquo;',T.ocd]].map(([w,at])=>({at,el:h('span',{style:{display:'inline-block'},html:w},wl)}));
+  const bsv=s('svg',{width:620,height:190,style:'position:absolute;left:0;top:0'},bub.card);
+  const bst=drawable(s('path',{d:'M60 120 L560 70',stroke:C('red'),'stroke-width':16,'stroke-linecap':'round',fill:'none'},bsv));
+  const desk=slab(R,{x:1560,y:330,w:460,h:260,color:'#FFFFFF',dark:C('soft-d'),radius:48,depth:14,floor:false});
+  const sp=icon(desk.face,'sparkle',{size:96,color:C('amber'),sw:7,x:182,y:30});
+  h('div',{class:'abs',style:{left:0,right:0,top:'150px',textAlign:'center',fontSize:'50px',fontWeight:800,letterSpacing:'-.02em'},html:'Spotless desk <span style="color:#2FA35A">&#10003;</span>'},desk.face);
+  const dsv=s('svg',{width:460,height:260,style:'position:absolute;left:0;top:0'},desk.card);
+  const dst=drawable(s('path',{d:'M50 210 L410 50',stroke:C('red'),'stroke-width':16,'stroke-linecap':'round',fill:'none'},dsv));
+  const stamp=slab(R,{x:960,y:760,w:720,h:170,color:C('red'),dark:C('red-d'),radius:85,depth:16,floor:false});
+  h('div',{class:'abs',style:{inset:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'92px',fontWeight:800,letterSpacing:'-.03em',color:'#fff'},html:'Probably not.'},stamp.face);
+  return t=>{
+    pop(kick,eBack(seg(t,T.kick,T.kick+.35),1.8));kick.style.opacity=clamp((t-T.kick)/.15)*(1-seg(t,T.im,T.im+.3)*.0);
+    slabIn(bub,t,T.im-.15,{rx0:0,ry0:50});
+    bw.forEach(w=>{const k=eBack(seg(t,w.at,w.at+.3),2);w.el.style.opacity=clamp(k*2);w.el.style.transform=`translateY(${(1-clamp(k))*20}px) scale(${Math.max(0,k)})`;w.el.style.filter=k<1?`blur(${(1-clamp(k))*6}px)`:'none'});
+    slabIn(desk,t,T.desk,{rx0:0,ry0:-50});sp.draw(eInOut(seg(t,T.desk+.15,T.desk+.6)));
+    sp.svg.style.transform=`rotate(${t*40}deg)`;
+    const dim=seg(t,T.well,T.well+.4);
+    [bub,desk].forEach(x=>x.face.style.filter=`saturate(${1-dim}) brightness(${1-dim*.04})`);
+    draw(bst,eOut(seg(t,T.not-.1,T.not+.2)));draw(dst,eOut(seg(t,T.not,T.not+.3)));
+    const ks=spring(seg(t,T.prob,T.prob+.7));stamp.wrap.style.opacity=clamp((t-T.prob)/.1);
+    stamp.wrap.style.transform=`perspective(1800px) rotate(${lerp(-14,-4,ks)}deg) rotateX(${lerp(50,0,ks)}deg) scale(${lerp(1.8,1,ks)})`;
+  }}
 /* ================= clip table (times = seconds in the source video) ================= */
 const rel=(tin,arr)=>arr.map(x=>x-tin);
 const CLIPS={
+  'hook':{in:0,out:5.98,alpha:true,make:T=>hookScene({t:{kick:.15,im:1.04,so:1.34,ocd:1.74,desk:3.24,well:4.36,prob:5.06,not:5.5}})},
   'not-just-tidy':{in:5.98,out:10.0,make:T=>tiles({title:'OCD is <b>not</b> just&hellip;',titleAt:0,noFocus:true,
     items:[{label:'Clean',icon:'sparkle',at:7.8-T,strike:8.2-T},{label:'Tidy',icon:'review',at:8.32-T,strike:8.85-T},{label:'Organized',icon:'build',at:9.0-T,strike:9.45-T}]})},
   'ocpd':{in:12.44,out:20.0,make:T=>term({kicker:'That could be more like',term:'OCPD',color:'violet',termAt:.15,kAt:0,
@@ -461,8 +492,8 @@ const CLIPS={
 const params=new URLSearchParams(location.search);
 const id=params.get('clip');
 if(id==='__list'){window.CLIPS=Object.fromEntries(Object.entries(CLIPS).map(([k,v])=>[k,{in:v.in,out:v.out}]))}
-else{const c=CLIPS[id];const seek=c.make(c.in);window.DUR=c.out-c.in;window.seek=seek;seek(+(params.get('t')||0))}
-window.CLIP_LIST=Object.fromEntries(Object.entries(CLIPS).map(([k,v])=>[k,{in:v.in,out:v.out}]));
+else{const c=CLIPS[id];if(c.alpha||params.get('alpha')){document.documentElement.style.background='transparent';document.body.style.background='transparent'}const seek=c.make(c.in);window.DUR=c.out-c.in;window.seek=seek;seek(+(params.get('t')||0))}
+window.CLIP_LIST=Object.fromEntries(Object.entries(CLIPS).map(([k,v])=>[k,{in:v.in,out:v.out,alpha:!!v.alpha}]));
 </script>
 </body>
 </html>

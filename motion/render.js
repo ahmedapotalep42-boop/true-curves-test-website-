@@ -26,7 +26,7 @@ const PAGE = 'file://' + path.resolve(__dirname, 'ocd.html');
     for (const [i, t] of times.entries()) {
       await page.evaluate(t => window.seek(t), t);
       const f = `${out}.${i}.png`;
-      await page.screenshot({ path: f });
+      await page.screenshot({ path: f, omitBackground: true });
       tmp.push(f);
     }
     const cols = Math.min(3, tmp.length), rows = Math.ceil(tmp.length / cols);
@@ -38,13 +38,14 @@ const PAGE = 'file://' + path.resolve(__dirname, 'ocd.html');
     tmp.forEach(f => fs.unlinkSync(f));
   } else {
     const fps = a3 || '30000/1001';
+    const alpha = out.endsWith('.mov');
     const [num, den] = fps.split('/').map(Number);
     const rate = num / (den || 1), n = Math.round(dur * rate);
     const ff = spawn('ffmpeg', ['-loglevel', 'error', '-y', '-f', 'image2pipe', '-framerate', fps, '-i', '-',
-      '-c:v', 'libx264', '-preset', 'slow', '-crf', '14', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', out], { stdio: ['pipe', 'inherit', 'inherit'] });
+      ...(alpha ? ['-c:v', 'prores_ks', '-profile:v', '4444', '-pix_fmt', 'yuva444p10le'] : ['-c:v', 'libx264', '-preset', 'slow', '-crf', '14', '-pix_fmt', 'yuv420p', '-movflags', '+faststart']), out], { stdio: ['pipe', 'inherit', 'inherit'] });
     for (let i = 0; i < n; i++) {
       await page.evaluate(t => window.seek(t), i / rate);
-      const buf = await page.screenshot({ type: 'png' });
+      const buf = await page.screenshot({ type: 'png', omitBackground: alpha });
       if (!ff.stdin.write(buf)) await new Promise(r => ff.stdin.once('drain', r));
     }
     ff.stdin.end();
