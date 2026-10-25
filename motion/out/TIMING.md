@@ -5,6 +5,7 @@ Place each clip on a track above your video at its **In** time; it ends at **Out
 | # | File | In | Out | Line it covers |
 |---|---|---|---|---|
 | 0 | `00_0m00s00_hook.mov` | 0:00.00 | 0:05.98 | Have you ever said, "I'm so OCD," just because your desk is spotless? Well, you're probably not. — **transparent overlay (ProRes 4444) on top of your footage**, plus a 115% punch-in from 0:04.36 to 0:05.98 |
+| 0b | `00b_0m20s30_lower-third.mov` | 0:20.30 | 0:24.00 | Lower third: **Sofia Younes / Psychotherapist** — transparent overlay (ProRes 4444) over the footage, no blur transition |
 | 1 | `01_0m05s98_not-just-tidy.mp4` | 0:05.98 | 0:10.00 | OCD is not simply liking things clean, tidy, or organized. |
 | 2 | `02_0m12s44_ocpd.mp4` | 0:12.44 | 0:20.00 | or obsessive-compulsive personality disorder, involving a long-standing pattern of perfectionism, order, and control. |
 | 3 | `03_0m24s04_two-elements.mp4` | 0:24.04 | 0:27.90 | all comes down, uh, to two key elements. First, the obsessions. |

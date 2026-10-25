@@ -43,7 +43,8 @@ for name, c in clips.items():
         + (f",fade=t=out:st={b - XF}:d={2 * XF}:alpha=1" if fade_out else "") + f"[c{n}]")
     graph.append(f"{prev}[c{n}]overlay=eof_action=pass:enable='between(t,{s0},{b + XF})'[v{n}]")
     prev = f'[v{n}]'
-    cuts.update(t for t in (a, b) if t > 0)
+    if not c.get('alpha'):  # overlays sit on a continuous shot - no blur cut
+        cuts.update(t for t in (a, b) if t > 0)
 
 cuts = sorted(cuts)
 for i, (dist, sigma) in enumerate(BLUR):

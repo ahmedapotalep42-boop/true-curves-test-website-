@@ -442,9 +442,34 @@ function hookScene(o){
     const ks=spring(seg(t,T.prob,T.prob+.7));stamp.wrap.style.opacity=clamp((t-T.prob)/.1);
     stamp.wrap.style.transform=`perspective(1800px) rotate(${lerp(-14,-4,ks)}deg) rotateX(${lerp(50,0,ks)}deg) scale(${lerp(1.8,1,ks)})`;
   }}
+
+/* ================= scene: lower third (transparent, over the footage) ================= */
+function lowerThird(o){
+  const R=root();
+  const X=130,Y=790;
+  const wrap=h('div',{class:'abs',style:{left:X+'px',top:Y+'px',transformStyle:'preserve-3d'}},R);
+  const bar=h('div',{class:'abs',style:{left:'0px',top:'8px',width:'14px',height:'128px',borderRadius:'8px',
+    background:C('teal'),boxShadow:extrude(C('teal-d'),5,.25),transformOrigin:'50% 0%'}},wrap);
+  const nameW=h('div',{class:'abs',style:{left:'44px',top:'0px',overflow:'hidden'}},wrap);
+  const name=h('div',{style:{fontSize:'76px',fontWeight:800,letterSpacing:'-.03em',color:'#fff',
+    textShadow:'0 4px 24px rgba(0,0,0,.55), 0 1px 2px rgba(0,0,0,.6)',whiteSpace:'nowrap',lineHeight:1.1},html:o.name},nameW);
+  const role=h('div',{class:'chip abs',style:{left:'46px',top:'102px',fontSize:'34px',letterSpacing:'.01em',
+    background:'rgba(18,18,18,.82)',color:'#fff',boxShadow:extrude('rgba(0,0,0,.6)',5,.25)},html:o.role},wrap);
+  return t=>{
+    const kb=spring(seg(t,0,.7)), kn=eOut(seg(t,.18,.85)), kr=eBack(seg(t,.5,.95),1.6);
+    const out=eInOut(seg(t,o.out,o.out+.45));
+    bar.style.transform=`scaleY(${kb})`;bar.style.opacity=1-out;
+    nameW.style.clipPath=`inset(-30% ${(1-kn)*100}% -30% 0)`;
+    name.style.transform=`translateX(${(1-kn)*-26}px)`;
+    nameW.style.opacity=1-out;
+    role.style.opacity=clamp(kr*2)*(1-out);
+    role.style.transform=`translateY(${(1-clamp(kr))*14}px) scale(${Math.max(0,kr)})`;
+    wrap.style.transform=`translateX(${-out*40}px)`;
+  }}
 /* ================= clip table (times = seconds in the source video) ================= */
 const rel=(tin,arr)=>arr.map(x=>x-tin);
 const CLIPS={
+  'lower-third':{in:20.3,out:24.0,alpha:true,make:T=>lowerThird({name:'Sofia Younes',role:'Psychotherapist',out:2.95})},
   'hook':{in:0,out:5.98,alpha:true,make:T=>hookScene({t:{kick:.15,im:1.04,so:1.34,ocd:1.74,desk:3.24,well:4.36,prob:5.06,not:5.5}})},
   'not-just-tidy':{in:5.98,out:10.0,make:T=>tiles({title:'OCD is <b>not</b> just&hellip;',titleAt:0,noFocus:true,
     items:[{label:'Clean',icon:'sparkle',at:7.8-T,strike:8.2-T},{label:'Tidy',icon:'review',at:8.32-T,strike:8.85-T},{label:'Organized',icon:'build',at:9.0-T,strike:9.45-T}]})},
