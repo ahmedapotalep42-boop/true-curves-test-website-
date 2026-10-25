@@ -1,14 +1,22 @@
-// usage: node render.js <scene> <out.mp4> [fps]        -> full clip
-//        node render.js <scene> <out.png> --stills t1,t2,...  -> contact sheet
+// usage: node render.js <clip> <out.mp4> [fps]               -> full clip
+//        node render.js <clip> <out.png> --stills t1,t2,...  -> contact sheet (clip-local seconds)
+//        node render.js --list                               -> clip ids with in/out
 const { chromium } = require('playwright');
 const { spawn, execFileSync } = require('child_process');
+const fs = require('fs');
 const path = require('path');
+const PAGE = 'file://' + path.resolve(__dirname, 'ocd.html');
 
 (async () => {
-  const [scene, out, a3, a4] = process.argv.slice(2);
+  const [clip, out, a3, a4] = process.argv.slice(2);
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
-  await page.goto('file://' + path.resolve(__dirname, 'scenes.html') + '?scene=' + scene);
+  if (clip === '--list') {
+    await page.goto(PAGE + '?clip=__list');
+    console.log(JSON.stringify(await page.evaluate(() => window.CLIP_LIST)));
+    return browser.close();
+  }
+  await page.goto(PAGE + '?clip=' + clip);
   await page.evaluate(() => document.fonts.ready);
   const dur = await page.evaluate(() => window.DUR);
 
@@ -22,18 +30,20 @@ const path = require('path');
       tmp.push(f);
     }
     const cols = Math.min(3, tmp.length), rows = Math.ceil(tmp.length / cols);
-    execFileSync('ffmpeg', ['-loglevel', 'error', '-y', ...tmp.flatMap(f => ['-i', f]),
-      '-filter_complex', tmp.map((_, i) => `[${i}]scale=640:360,drawtext=text='t=${times[i]}':x=10:y=10:fontsize=24:fontcolor=red[v${i}]`).join(';') + ';' +
-      tmp.map((_, i) => `[v${i}]`).join('') + `xstack=inputs=${tmp.length}:layout=` +
-      tmp.map((_, i) => `${(i % cols) * 640}_${Math.floor(i / cols) * 360}`).join('|') + (tmp.length < cols * rows ? ':fill=gray' : ''),
-      out]);
-    tmp.forEach(f => require('fs').unlinkSync(f));
+    const label = tmp.map((_, i) => `[${i}]scale=640:360,drawtext=text='t=${times[i]}':x=10:y=10:fontsize=24:fontcolor=red[v${i}]`).join(';');
+    const filter = tmp.length === 1 ? label.replace('[v0]', '') :
+      label + ';' + tmp.map((_, i) => `[v${i}]`).join('') + `xstack=inputs=${tmp.length}:layout=` +
+      tmp.map((_, i) => `${(i % cols) * 640}_${Math.floor(i / cols) * 360}`).join('|') + (tmp.length < cols * rows ? ':fill=gray' : '');
+    execFileSync('ffmpeg', ['-loglevel', 'error', '-y', ...tmp.flatMap(f => ['-i', f]), '-filter_complex', filter, out]);
+    tmp.forEach(f => fs.unlinkSync(f));
   } else {
-    const fps = +(a3 || 30), n = Math.round(dur * fps);
-    const ff = spawn('ffmpeg', ['-loglevel', 'error', '-y', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-',
+    const fps = a3 || '30000/1001';
+    const [num, den] = fps.split('/').map(Number);
+    const rate = num / (den || 1), n = Math.round(dur * rate);
+    const ff = spawn('ffmpeg', ['-loglevel', 'error', '-y', '-f', 'image2pipe', '-framerate', fps, '-i', '-',
       '-c:v', 'libx264', '-preset', 'slow', '-crf', '14', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', out], { stdio: ['pipe', 'inherit', 'inherit'] });
     for (let i = 0; i < n; i++) {
-      await page.evaluate(t => window.seek(t), i / fps);
+      await page.evaluate(t => window.seek(t), i / rate);
       const buf = await page.screenshot({ type: 'png' });
       if (!ff.stdin.write(buf)) await new Promise(r => ff.stdin.once('drain', r));
     }

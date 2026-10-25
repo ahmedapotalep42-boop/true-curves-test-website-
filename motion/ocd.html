@@ -1,0 +1,468 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>OCD Motion Clips</title>
+<style>
+  :root{
+    --ink:#121212; --mute:#6B6B6B; --bg:#FFFFFF; --soft:#F3F3F1; --soft-d:#DAD9D4;
+    --yellow:#F7C325; --yellow-d:#C99A0E;
+    --coral:#F47C6E; --coral-d:#C9564A;
+    --magenta:#E2245F; --magenta-d:#A8123F;
+    --teal:#1FA6A0; --teal-d:#137571;
+    --blue:#2F7FD1; --blue-d:#1D5A9C;
+    --green:#2FA35A; --green-d:#1E7840;
+    --amber:#F5A623; --amber-d:#C27C0B;
+    --red:#EF5A5A; --red-d:#B93838;
+    --violet:#6A4FC9; --violet-d:#4A3496;
+    --gray:#9A9A96; --gray-d:#6F6F6B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1920px;height:1080px;overflow:hidden;background:var(--bg);
+    font-family:Inter,"Inter Display",system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+  #stage{position:absolute;inset:0;perspective:2200px;overflow:hidden}
+  .cam{position:absolute;inset:0;transform-origin:50% 50%}
+  .abs{position:absolute}
+  .card{position:absolute;transform-style:preserve-3d}
+  .face{position:absolute;inset:0;border-radius:inherit;overflow:hidden}
+  .face::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+    background:radial-gradient(120% 80% at 18% 0%,rgba(255,255,255,.38),rgba(255,255,255,0) 55%)}
+  .floor{position:absolute;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.18),rgba(0,0,0,0))}
+  .title{font-weight:400;letter-spacing:-.025em;line-height:1.04}
+  .title b{font-weight:800}
+  .cap{font-weight:500;color:var(--mute);letter-spacing:-.01em}
+  .chip{display:inline-flex;align-items:center;gap:14px;font-weight:700;border-radius:999px;padding:16px 32px;white-space:nowrap}
+  svg{overflow:visible}
+</style>
+</head>
+<body>
+<div id="stage"><div class="cam" id="cam"></div></div>
+<script>
+/* ================= helpers ================= */
+const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const seg=(t,a,b)=>clamp((t-a)/(b-a));
+const lerp=(a,b,k)=>a+(b-a)*k;
+const eOut=k=>1-Math.pow(1-k,3);
+const eInOut=k=>k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;
+const eBack=(k,s=1.25)=>{const c=s+1;return 1+c*Math.pow(k-1,3)+s*Math.pow(k-1,2)};
+const spring=k=>k<=0?0:k>=1?1:1-Math.exp(-6.5*k)*Math.cos(5.2*k);
+const css=getComputedStyle(document.documentElement);
+const C=n=>css.getPropertyValue('--'+n).trim();
+const NS='http://www.w3.org/2000/svg';
+function h(tag,attrs={},parent){const el=document.createElement(tag);
+  for(const[k,v]of Object.entries(attrs)){if(k==='style')Object.assign(el.style,v);else if(k==='html')el.innerHTML=v;else el.setAttribute(k,v)}
+  if(parent)parent.appendChild(el);return el}
+function s(tag,attrs={},parent){const el=document.createElementNS(NS,tag);
+  for(const[k,v]of Object.entries(attrs))el.setAttribute(k,v);if(parent)parent.appendChild(el);return el}
+function extrude(color,depth=14,amb=.22){const sh=[];for(let i=1;i<=depth;i++)sh.push(`0 ${i}px 0 ${color}`);
+  sh.push(`0 ${depth+30}px 60px -18px rgba(0,0,0,${amb})`,`0 ${depth+8}px 18px -6px rgba(0,0,0,${amb*.6})`);return sh.join(',')}
+function drawable(p){const L=p.getTotalLength();p.style.strokeDasharray=L;p.style.strokeDashoffset=L;p._L=L;return p}
+function draw(p,k){p.style.strokeDashoffset=p._L*(1-clamp(k))}
+function rng(seed){return()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646}}
+function smoothPath(pts){let d=`M${pts[0][0]},${pts[0][1]}`;const n=pts.length;
+  for(let i=0;i<n-1;i++){const p0=pts[Math.max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(n-1,i+2)];
+    d+=` C${p1[0]+(p2[0]-p0[0])/6},${p1[1]+(p2[1]-p0[1])/6} ${p2[0]-(p3[0]-p1[0])/6},${p2[1]-(p3[1]-p1[1])/6} ${p2[0]},${p2[1]}`}return d}
+// text reveal: fade + rise + blur
+function reveal(el,k,dy=26,base=''){el.style.opacity=k;el.style.transform=`${base} translateY(${(1-k)*dy}px)`;el.style.filter=k<1?`blur(${(1-k)*8}px)`:'none'}
+function pop(el,k,base=''){el.style.opacity=clamp(k*2);el.style.transform=`${base} scale(${Math.max(0,k)})`}
+const cam=document.getElementById('cam');
+function root(){return h('div',{class:'abs',style:{inset:0}},cam)}
+function camPush(t,amt=.006){cam.style.transform=`scale(${1+t*amt})`}
+
+/* 3D slab */
+function slab(parent,{x,y,w,h:hh,color,dark,radius=48,depth=14,floor=true}){
+  const wrap=h('div',{class:'abs',style:{left:x-w/2+'px',top:y-hh/2+'px',width:w+'px',height:hh+'px',transformStyle:'preserve-3d'}},parent);
+  const fl=floor?h('div',{class:'floor',style:{width:w*1.05+'px',height:'70px',left:-w*.025+'px',top:hh+depth+12+'px'}},wrap):null;
+  const card=h('div',{class:'card',style:{inset:0,borderRadius:radius+'px',boxShadow:extrude(dark,depth)}},wrap);
+  const face=h('div',{class:'face',style:{background:color}},card);
+  return{wrap,floor:fl,card,face}}
+// flip-in transform for a slab
+function slabIn(sl,t,at,{idle=true,rx0=55,ry0=-25}={}){const k=spring(seg(t,at,at+.85));
+  const fl=idle?Math.sin((t+at)*1.5)*5:0;
+  sl.wrap.style.opacity=clamp((t-at)/.18);
+  sl.wrap.style.transform=`perspective(1800px) translateY(${lerp(120,0,k)+fl}px) rotateX(${lerp(rx0,4,k)}deg) rotateY(${lerp(ry0,-3,k)+(idle?Math.sin(t*.9+at)*1.5:0)}deg) scale(${lerp(.5,1,k)})`;
+  if(sl.floor){sl.floor.style.opacity=k;sl.floor.style.transform=`translateY(${-fl+20}px)`}return k}
+
+/* ================= icons (viewBox 0 0 100 100, stroke) ================= */
+const ICONS={
+  drop:['M50 12 C50 12 24 44 24 60 a26 26 0 0 0 52 0 C76 44 50 12 50 12 Z','M38 62 a12 12 0 0 0 12 12'],
+  lock:['M26 46 h48 a4 4 0 0 1 4 4 v34 a4 4 0 0 1 -4 4 h-48 a4 4 0 0 1 -4 -4 v-34 a4 4 0 0 1 4 -4 z','M34 46 v-12 a16 16 0 0 1 32 0 v12','M50 62 v10'],
+  tv:['M14 24 h72 a6 6 0 0 1 6 6 v42 a6 6 0 0 1 -6 6 h-72 a6 6 0 0 1 -6 -6 v-42 a6 6 0 0 1 6 -6 z','M36 92 h28','M50 78 v14','M30 60 v-6','M42 60 v-12','M54 60 v-18','M66 60 v-24'],
+  pen:['M22 78 L30 62 L68 24 L76 32 L38 70 Z','M62 30 L70 38','M14 92 h30','M80 12 l6 -6','M86 22 l8 -2','M72 8 l2 -6'],
+  count:['M18 30 v40','M34 30 v40','M50 30 v40','M66 30 v40','M10 62 L76 38','M86 30 v40'],
+  replay:['M14 20 h56 a8 8 0 0 1 8 8 v28 a8 8 0 0 1 -8 8 h-36 l-14 12 v-12 h-6 a8 8 0 0 1 -8 -8 v-28 a8 8 0 0 1 8 -8 z','M58 42 a12 12 0 1 1 -4 -9','M56 26 l-2 8 l8 1'],
+  review:['M24 12 h52 v76 h-52 z','M34 30 l5 5 l9 -10','M56 31 h12','M34 50 l5 5 l9 -10','M56 51 h12','M34 70 l5 5 l9 -10','M56 71 h12'],
+  ask:['M14 18 h72 a8 8 0 0 1 8 8 v36 a8 8 0 0 1 -8 8 h-44 l-16 14 v-14 h-12 a8 8 0 0 1 -8 -8 v-36 a8 8 0 0 1 8 -8 z','M40 34 a10 10 0 1 1 14 9 c-4 2 -4 5 -4 8','M50 60 v1'],
+  dna:['M30 8 C30 34 70 40 70 50 C70 60 30 66 30 92','M70 8 C70 34 30 40 30 50 C30 60 70 66 70 92','M38 22 h24','M36 78 h28','M42 36 h16','M42 64 h16'],
+  bolt:['M56 6 L22 56 h26 l-8 38 l38 -54 h-28 z'],
+  path:['M8 84 L36 40 L50 58 L70 26 L92 84 Z','M70 26 v-14 l12 5 l-12 5'],
+  book:['M50 24 C40 16 22 14 10 18 v62 c12 -4 30 -2 40 6 c10 -8 28 -10 40 -6 v-62 c-12 -4 -30 -2 -40 6 z','M50 24 v62'],
+  star:['M50 8 l11 26 l28 3 l-21 19 l6 28 l-24 -14 l-24 14 l6 -28 l-21 -19 l28 -3 z'],
+  germ:['M50 30 a20 20 0 1 1 -0.1 0','M50 30 v-14','M50 70 v14','M30 50 h-14','M70 50 h14','M36 36 l-10 -10','M64 64 l10 10','M64 36 l10 -10','M36 64 l-10 10','M44 46 v1','M56 54 v1'],
+  warn:['M50 10 L92 86 H8 Z','M50 38 v22','M50 72 v1'],
+  heart:['M50 86 C20 64 8 48 8 32 a20 20 0 0 1 42 -6 a20 20 0 0 1 42 6 c0 16 -12 32 -42 54 z','M54 30 l-10 16 l12 6 l-10 18'],
+  eye:['M6 50 C22 24 78 24 94 50 C78 76 22 76 6 50 Z','M50 36 a14 14 0 1 1 -0.1 0'],
+  ear:['M66 84 C50 90 44 76 40 66 C34 54 22 50 22 34 a28 28 0 0 1 56 0 c0 14 -12 18 -12 30','M38 36 a12 12 0 0 1 24 0 c0 8 -8 10 -8 16'],
+  build:['M20 92 V14 h40 v78','M60 40 h22 v52','M10 92 h82','M30 28 h4','M46 28 h4','M30 44 h4','M46 44 h4','M30 60 h4','M46 60 h4','M70 56 h4','M70 72 h4','M36 92 v-16 h8 v16'],
+  target:['M50 10 a40 40 0 1 1 -0.1 0','M50 28 a22 22 0 1 1 -0.1 0','M50 46 a4 4 0 1 1 -0.1 0'],
+  question:['M50 10 a40 40 0 1 1 -0.1 0','M38 40 a12 12 0 1 1 17 11 c-5 2 -5 6 -5 10','M50 72 v1'],
+  noloop:['M50 14 a36 36 0 1 1 -32 20','M14 18 l4 16 l16 -4','M14 86 L86 14'],
+  pulse:['M6 52 h22 l8 -22 l12 44 l10 -30 l6 8 h30'],
+  clock:['M50 10 a40 40 0 1 1 -0.1 0','M50 26 v24 l16 10'],
+  hand:['M30 92 V46 a6 6 0 0 1 12 0 v-24 a6 6 0 0 1 12 0 v22 a6 6 0 0 1 12 0 v6 a6 6 0 0 1 12 0 v24 c0 12 -8 18 -18 18 z'],
+  sparkle:['M50 10 v80','M10 50 h80','M22 22 l56 56','M78 22 l-56 56'],
+  pill:['M30 70 L70 30 a14 14 0 0 1 20 20 L50 90 a14 14 0 0 1 -20 -20 z','M50 50 l20 20'],
+  speaker:['M14 38 h16 l22 -18 v60 l-22 -18 h-16 z'],
+};
+function icon(parent,name,{size=120,color='#121212',sw=6,x=0,y=0}={}){
+  const svg=s('svg',{viewBox:'0 0 100 100',width:size,height:size,style:`position:absolute;left:${x}px;top:${y}px`},parent);
+  const g=s('g',{fill:'none',stroke:color,'stroke-width':sw,'stroke-linecap':'round','stroke-linejoin':'round'},svg);
+  const paths=ICONS[name].map(d=>drawable(s('path',{d},g)));
+  return{svg,paths,draw(k){paths.forEach((p,i)=>draw(p,seg(k,i/paths.length*.5,.5+i/paths.length*.5)))}}}
+
+/* ================= scene: big concept card + timed tags ================= */
+function concept(o){
+  const R=root(),W=620,H=620;
+  const sl=slab(R,{x:960,y:470,w:W,h:H,color:C(o.color),dark:C(o.color+'-d'),radius:56,depth:16});
+  const ink=o.ink||'#121212';
+  const t1=h('div',{class:'title abs',style:{left:'60px',right:'60px',top:'66px',fontSize:'64px',color:ink,textAlign:'center'},html:`${o.l1}<br><b>${o.l2}</b>`},sl.face);
+  const svg=s('svg',{viewBox:'-20 -20 240 240',width:380,height:380,style:'position:absolute;left:120px;top:236px'},sl.face);
+  const ic=o.icon(svg,ink);
+  const kick=o.kicker?h('div',{class:'chip abs',style:{left:'50%',top:'60px',fontSize:'30px',background:C('soft'),color:'#333',boxShadow:extrude(C('soft-d'),4,.08)},html:o.kicker},R):null;
+  const tags=(o.tags||[]).map(([txt,at])=>({at,el:h('div',{class:'chip',style:{fontSize:'38px',background:'#121212',color:'#fff',boxShadow:extrude('#000',6,.18)},html:txt})}));
+  const row=h('div',{class:'abs',style:{left:0,right:0,top:'905px',display:'flex',justifyContent:'center',gap:'22px'}},R);tags.forEach(x=>row.appendChild(x.el));
+  return t=>{
+    const k=slabIn(sl,t,0,{rx0:24,ry0:-38});
+    reveal(t1,eOut(seg(t,.4,1)));
+    if(kick)reveal(kick,eOut(seg(t,.15,.6)),-20,'translateX(-50%)');
+    tags.forEach(x=>pop(x.el,eBack(seg(t,x.at,x.at+.35),1.8)));
+    o.anim(ic,t);camPush(t)}}
+function iconHead(svg,col){
+  const g=s('g',{fill:'none',stroke:col,'stroke-width':7,'stroke-linecap':'round','stroke-linejoin':'round'},svg);
+  const head=drawable(s('path',{d:'M58 168 L58 132 C34 118 24 96 26 72 C30 34 62 10 98 10 C138 10 168 40 168 78 C168 92 174 100 182 112 C186 118 181 122 175 122 L168 122 L168 140 C168 150 160 156 150 156 L132 156 L132 168'},g));
+  const r=rng(7),pts=[];for(let i=0;i<26;i++){const a=r()*Math.PI*2,rad=10+r()*40;pts.push([98+Math.cos(a)*rad*1.15,74+Math.sin(a)*rad*.85])}
+  const sg=s('g',{},g);const scrib=drawable(s('path',{d:smoothPath(pts),'stroke-width':4.5},sg));return{head,scrib,sg}}
+function iconCheck(svg,col){
+  const g=s('g',{fill:'none',stroke:col,'stroke-width':7,'stroke-linecap':'round','stroke-linejoin':'round'},svg);
+  const box=drawable(s('rect',{x:40,y:40,width:120,height:120,rx:26},g));
+  const tick=drawable(s('path',{d:'M70 102 L92 124 L132 78'},g));
+  const arc=s('g',{},svg);
+  const ring=drawable(s('path',{d:'M100 -6 A106 106 0 1 1 6 52',fill:'none',stroke:col,'stroke-width':6,'stroke-linecap':'round'},arc));
+  const hd=s('path',{d:'M-6 40 L6 52 L22 42',fill:'none',stroke:col,'stroke-width':6,'stroke-linecap':'round','stroke-linejoin':'round'},arc);
+  return{box,tick,arc,ring,hd}}
+
+/* ================= scene: tiles (row of 3D tiles appearing on words) ================= */
+function tiles(o){
+  const R=root(),n=o.items.length;
+  const W=n<=2?440:n===3?400:n===4?350:300, H=Math.round(W*1.05), gap=n<=3?60:40;
+  const total=n*W+(n-1)*gap, x0=960-total/2+W/2, y=o.title?600:540;
+  const title=o.title?h('div',{class:'title abs',style:{left:'80px',right:'80px',top:'95px',fontSize:o.titleSize||'84px',textAlign:'center'},html:o.title}):null;
+  if(title)R.appendChild(title);
+  const items=o.items.map((it,i)=>{
+    const sl=slab(R,{x:x0+i*(W+gap),y,w:W,h:H,color:it.color?C(it.color):'#FFFFFF',dark:it.color?C(it.color+'-d'):C('soft-d'),radius:44,depth:14});
+    if(!it.color)sl.face.style.border='3px solid #ECEBE7';
+    const ink=it.ink||(it.color&&!['yellow','amber','coral'].includes(it.color)?'#fff':'#121212');
+    const ic=icon(sl.face,it.icon,{size:W*.42,color:ink,sw:5.5,x:W*.29,y:H*.14});
+    const lb=h('div',{class:'abs',style:{left:'24px',right:'24px',top:H*.62+'px',textAlign:'center',fontSize:(W>=380?40:W>=340?36:31)+'px',fontWeight:800,letterSpacing:'-.02em',lineHeight:1.12,color:ink},html:it.label},sl.face);
+    let strike=null;
+    if(it.strike!=null){const sv=s('svg',{width:W,height:H,style:'position:absolute;left:0;top:0'},sl.card);
+      strike=drawable(s('path',{d:`M${W*.12} ${H*.86} L${W*.88} ${H*.14}`,stroke:C('red'),'stroke-width':16,'stroke-linecap':'round',fill:'none'},sv))}
+    return{...it,sl,ic,lb,strike}});
+  const banner=o.banner?h('div',{class:'chip abs',style:{left:'50%',top:'930px',fontSize:'40px',background:'#121212',color:'#fff',boxShadow:extrude('#000',6,.2)},html:o.banner[0]},R):null;
+  return t=>{
+    if(title)reveal(title,eOut(seg(t,o.titleAt||0,(o.titleAt||0)+.55)));
+    const nv=Math.max(1,items.reduce((a,it)=>a+eInOut(seg(t,it.at-.1,it.at+.5)),0));
+    items.forEach((it,i)=>{it.sl.wrap.style.left=(960+(i-(nv-1)/2)*(W+gap)-W/2)+'px'});
+    const shown=items.filter(it=>t>=it.at);const last=shown[shown.length-1];
+    items.forEach(it=>{const k=slabIn(it.sl,t,it.at);it.ic.draw(eInOut(seg(t,it.at+.2,it.at+1)));
+      reveal(it.lb,eOut(seg(t,it.at+.3,it.at+.8)),16);
+      const act=(it===last&&!o.noFocus)?1:0;
+      it.sl.card.style.transform=`translateY(${-act*14}px)`;
+      if(it.strike){draw(it.strike,eOut(seg(t,it.strike,it.strike+.3)));const d=seg(t,it.strike,it.strike+.4);it.sl.face.style.filter=`saturate(${1-d*.8}) brightness(${1+d*.05})`}});
+    if(banner)pop(banner,eBack(seg(t,o.banner[1],o.banner[1]+.4),1.6),'translateX(-50%)');
+    camPush(t,.005)}}
+
+/* ================= scene: term definition ================= */
+function term(o){
+  const R=root();
+  const kick=h('div',{class:'cap abs',style:{left:'120px',right:'120px',top:o.kTop||'250px',textAlign:'center',fontSize:'50px',color:'#555'},html:o.kicker},R);
+  const sl=slab(R,{x:960,y:o.termY||470,w:o.termW||1000,h:200,color:C(o.color),dark:C(o.color+'-d'),radius:100,depth:16});
+  h('div',{class:'abs',style:{inset:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'110px',fontWeight:800,letterSpacing:'-.03em',color:o.ink||'#fff'},html:o.term},sl.face);
+  const def=o.def?h('div',{class:'title abs',style:{left:'120px',right:'120px',top:o.defTop||'640px',textAlign:'center',fontSize:'56px'},html:o.def[0]},R):null;
+  const sub=o.sub?h('div',{class:'cap abs',style:{left:'120px',right:'120px',top:'760px',textAlign:'center',fontSize:'44px'},html:o.sub[0]},R):null;
+  const chips=(o.chips||[]).map(([txt,at,c])=>({at,el:h('div',{class:'chip',style:{fontSize:'44px',background:C(c),color:'#fff',boxShadow:extrude(C(c+'-d'),7,.2)},html:txt})}));
+  const row=h('div',{class:'abs',style:{left:0,right:0,top:'850px',display:'flex',justifyContent:'center',gap:'28px'}},R);chips.forEach(x=>row.appendChild(x.el));
+  return t=>{reveal(kick,eOut(seg(t,o.kAt||0,(o.kAt||0)+.5)));slabIn(sl,t,o.termAt,{idle:true,rx0:70,ry0:0});
+    if(def)reveal(def,eOut(seg(t,o.def[1],o.def[1]+.5)));if(sub)reveal(sub,eOut(seg(t,o.sub[1],o.sub[1]+.5)));
+    chips.forEach(x=>pop(x.el,eBack(seg(t,x.at,x.at+.35),1.8)));camPush(t,.005)}}
+
+/* ================= scene: two key elements ================= */
+function twoCards(o){
+  const R=root();
+  const title=h('div',{class:'title abs',style:{left:0,right:0,top:'110px',textAlign:'center',fontSize:'84px'},html:'Two key <b>elements</b>'},R);
+  const defs=[['yellow','1','Obsessions','#121212',iconHead],['magenta','2','Compulsions','#fff',iconCheck]];
+  const cards=defs.map(([c,n,lab,ink,ic],i)=>{const sl=slab(R,{x:960+(i?320:-320),y:590,w:500,h:500,color:C(c),dark:C(c+'-d'),radius:52,depth:16});
+    h('div',{class:'abs',style:{left:'40px',top:'34px',fontSize:'40px',fontWeight:800,color:ink,opacity:.55},html:n},sl.face);
+    const svg=s('svg',{viewBox:'-20 -20 240 240',width:270,height:270,style:'position:absolute;left:115px;top:60px'},sl.face);const icn=ic(svg,ink);
+    h('div',{class:'abs',style:{left:0,right:0,top:'360px',textAlign:'center',fontSize:'58px',fontWeight:800,letterSpacing:'-.02em',color:ink},html:lab},sl.face);
+    return{sl,icn}});
+  return t=>{reveal(title,eOut(seg(t,o.titleAt,o.titleAt+.5)));
+    cards.forEach((c,i)=>{slabIn(c.sl,t,o.at[i]);
+      if(i===0){draw(c.icn.head,1);draw(c.icn.scrib,eInOut(seg(t,o.at[0]+.3,o.at[0]+1.4)))}
+      else{draw(c.icn.box,1);draw(c.icn.tick,1);draw(c.icn.ring,eInOut(seg(t,o.at[1]+.3,o.at[1]+1)));c.icn.hd.style.opacity=seg(t,o.at[1]+.9,o.at[1]+1)}});
+    const f=eInOut(seg(t,o.focus,o.focus+.6));
+    cards[0].sl.card.style.transform=`translateZ(${f*120}px) translateX(${f*120}px)`;
+    cards[1].sl.card.style.transform=`translateX(${f*80}px)`;cards[1].sl.wrap.style.opacity=lerp(1,.3,f)*clamp((t-o.at[1])/.18);
+    title.style.opacity=(1-f*.6)*eOut(seg(t,o.titleAt,o.titleAt+.5));camPush(t,.006)}}
+
+/* ================= scene: steps (horizontal process) ================= */
+function steps(o){
+  const R=root(),n=o.items.length,span=o.span||1500,x0=960-span/2,dx=span/(n-1),Y=o.y||560;
+  const head=h('div',{class:'title abs',style:{left:'80px',right:'80px',top:o.headTop||'110px',textAlign:'center',fontSize:o.headSize||'84px'},html:o.head[0]},R);
+  const sub=o.sub?h('div',{class:'cap abs',style:{left:'80px',right:'80px',top:o.subTop||'215px',textAlign:'center',fontSize:'46px'},html:o.sub[0]},R):null;
+  const svg=s('svg',{width:1920,height:1080,style:'position:absolute;left:0;top:0'},R);
+  const segs=[];for(let i=0;i<n-1;i++)segs.push(drawable(s('path',{d:`M${x0+i*dx+110} ${Y} L${x0+(i+1)*dx-110} ${Y}`,stroke:'#1A1A1A','stroke-width':6,'stroke-linecap':'round','stroke-dasharray':'0','fill':'none'},svg)));
+  const items=o.items.map((it,i)=>{const sl=slab(R,{x:x0+i*dx,y:Y,w:190,h:190,color:C(it.color),dark:C(it.color+'-d'),radius:95,depth:12});
+    const ink=['yellow','amber','coral'].includes(it.color)?'#121212':'#fff';
+    const ic=icon(sl.face,it.icon,{size:100,color:ink,sw:6.5,x:45,y:45});
+    const lb=h('div',{class:'abs',style:{left:x0+i*dx-200+'px',width:'400px',top:Y+150+'px',textAlign:'center'}},R);
+    h('div',{style:{fontSize:'44px',fontWeight:800,letterSpacing:'-.02em',lineHeight:1.1},html:it.label},lb);
+    if(it.sub)h('div',{class:'cap',style:{fontSize:'32px',marginTop:'10px'},html:it.sub},lb);
+    return{...it,sl,ic,lb}});
+  return t=>{reveal(head,eOut(seg(t,o.head[1],o.head[1]+.5)));if(sub)reveal(sub,eOut(seg(t,o.sub[1],o.sub[1]+.5)));
+    items.forEach((it,i)=>{slabIn(it.sl,t,it.at,{rx0:0,ry0:-80});it.ic.draw(eInOut(seg(t,it.at+.15,it.at+.8)));reveal(it.lb,eOut(seg(t,it.at+.2,it.at+.7)));
+      if(i>0)draw(segs[i-1],eInOut(seg(t,it.at-.35,it.at+.05)));
+      const last=items.filter(x=>t>=x.at).pop();it.sl.wrap.style.opacity=clamp((t-it.at)/.18)*(last===it||o.noDim?1:.7)});
+    camPush(t,.005)}}
+
+/* ================= scene: thought vs anxiety ================= */
+function versus(o){
+  const R=root();
+  const kick=h('div',{class:'cap abs',style:{left:0,right:0,top:'160px',textAlign:'center',fontSize:'52px'},html:'The real problem'},R);
+  const a=slab(R,{x:560,y:540,w:600,h:300,color:'#FFFFFF',dark:C('soft-d'),radius:60,depth:14});a.face.style.border='3px solid #ECEBE7';
+  h('div',{class:'abs',style:{inset:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'68px',fontWeight:800,color:'#9A9A96',letterSpacing:'-.02em'},html:'The thought'},a.face);
+  const sv=s('svg',{width:600,height:300,style:'position:absolute;left:0;top:0'},a.card);const st=drawable(s('path',{d:'M90 150 L510 150',stroke:C('red'),'stroke-width':14,'stroke-linecap':'round'},sv));
+  const b=slab(R,{x:1360,y:540,w:640,h:340,color:C('coral'),dark:C('coral-d'),radius:64,depth:18});
+  h('div',{class:'abs',style:{inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',fontSize:'52px',color:'#121212',textAlign:'center',lineHeight:1.05},html:'The<br><b style="font-size:84px;letter-spacing:-.03em">anxiety</b>it creates'},b.face);
+  const lab=h('div',{class:'chip abs',style:{left:'960px',top:'850px',fontSize:'40px',background:'#121212',color:'#fff',boxShadow:extrude('#000',6,.2)},html:'&larr;&nbsp; not this &nbsp;&middot;&nbsp; this &nbsp;&rarr;'},R);
+  return t=>{reveal(kick,eOut(seg(t,0,.5)));slabIn(a,t,o.a);draw(st,eOut(seg(t,o.strike,o.strike+.3)));
+    a.wrap.style.opacity=clamp((t-o.a)/.18)*lerp(1,.55,seg(t,o.strike,o.strike+.5));
+    slabIn(b,t,o.b);const f=eOut(seg(t,o.b+.5,o.b+1));b.card.style.transform=`scale(${1+f*.04})`;
+    pop(lab,eBack(seg(t,o.b+.6,o.b+1),1.5),'translateX(-50%)');camPush(t,.006)}}
+
+/* ================= scene: the OCD cycle ================= */
+function cycle(o){
+  const R=root(),CX=960,CY=540,RX=560,RY=330;
+  const svg=s('svg',{width:1920,height:1080,style:'position:absolute;left:0;top:0'},R);
+  const ring=s('ellipse',{cx:CX,cy:CY,rx:RX,ry:RY,fill:'none',stroke:'#1A1A1A','stroke-width':4,'stroke-dasharray':'2 14','stroke-linecap':'round'},svg);
+  const comet=s('path',{fill:'none','stroke-width':10,'stroke-linecap':'round'},svg);
+  const dot=s('circle',{r:16,fill:'#121212'},svg);
+  const defs=[['yellow','Unwanted','obsession','#121212'],['coral','Intense','anxiety','#121212'],['magenta','Physical / mental','compulsion','#fff'],['teal','Temporary','relief','#fff']];
+  const angs=[-90,0,90,180];
+  const pt=d=>{const r=d*Math.PI/180;return[CX+Math.cos(r)*RX,CY+Math.sin(r)*RY]};
+  const cards=defs.map(([c,a,b,ink],i)=>{const[x,y]=pt(angs[i]);const sl=slab(R,{x,y,w:310,h:250,color:C(c),dark:C(c+'-d'),radius:40,depth:12,floor:false});
+    h('div',{class:'title abs',style:{inset:0,display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',fontSize:'34px',color:ink,textAlign:'center'},html:`${a}<br><b style="font-size:44px">${b}</b>`},sl.face);
+    return{sl,c:C(c),y}});
+  const titles=o.titles.map(([html,at,col])=>({at,el:h('div',{class:'title abs',style:{left:0,right:0,top:'450px',textAlign:'center',fontSize:'100px',color:col||'#121212'},html:`<b>${html}</b>`},R)}));
+  const laps=o.laps;
+  return t=>{
+    const kr=eOut(seg(t,0,.6));ring.style.opacity=kr;
+    let ph=null;for(let i=0;i<laps.length-1;i++)if(t>=laps[i]&&t<laps[i+1]){ph={lap:i,f:(t-laps[i])/(laps[i+1]-laps[i])}}
+    if(t>=laps[laps.length-1])ph={lap:laps.length-2,f:1,end:true};
+    let cur=-999;
+    if(ph&&!ph.end){cur=-90+ph.f*360;const L=40+ph.lap*14;const pts=[];for(let k=0;k<=24;k++)pts.push(pt(cur-L*(1-k/24)));
+      comet.setAttribute('d','M'+pts.map(p=>p.join(',')).join(' L'));
+      const sec=Math.floor(((((cur+90)%360)+360)%360)/90);comet.setAttribute('stroke',cards[sec].c);
+      const[x,y]=pt(cur);dot.setAttribute('cx',x);dot.setAttribute('cy',y);dot.style.opacity=1;comet.style.opacity=1;
+      comet.setAttribute('stroke-width',8+ph.lap*4);dot.setAttribute('r',12+ph.lap*3);ring.setAttribute('stroke-width',4+ph.lap*1.5)}
+    else{dot.style.opacity=0;comet.style.opacity=0}
+    cards.forEach((cd,i)=>{const at=o.cards[i];const k=spring(seg(t,at,at+.8));const depth=(cd.y-CY)/RY;let lift=0;
+      if(cur>-999){const d=Math.abs(((cur-angs[i])%360+540)%360-180);lift=clamp(1-d/40)}
+      cd.sl.wrap.style.opacity=clamp((t-at)/.15);cd.sl.wrap.style.zIndex=Math.round(10+depth*5);
+      cd.sl.wrap.style.transform=`perspective(1800px) translateY(${lerp(80,0,k)-lift*24}px) rotateX(${lerp(60,6,k)}deg) scale(${lerp(.3,1,k)*(1+depth*.05)*(1+lift*.1)})`});
+    titles.forEach((ti,i)=>{const kin=eOut(seg(t,ti.at,ti.at+.5));const nx=titles[i+1];const kout=nx?eOut(seg(t,nx.at,nx.at+.35)):0;
+      ti.el.style.opacity=kin*(1-kout);ti.el.style.transform=`scale(${lerp(1.12,1,kin)*(1-kout*.08)})`;ti.el.style.filter=`blur(${(1-kin)*10+kout*10}px)`});
+    camPush(t,.008)}}
+
+/* ================= scene: brain loop ================= */
+function brain(o){
+  const R=root(),T=o.t;
+  const bw=h('div',{class:'abs',style:{left:'90px',top:'170px',width:'960px',height:'780px',transformStyle:'preserve-3d'}},R);
+  const svg=s('svg',{viewBox:'40 20 560 460',width:960,height:780,style:'position:absolute;left:0;top:0'},bw);
+  const defs=s('defs',{},svg);
+  const cerebrum='M120 300 C70 282 58 212 92 166 C108 102 178 56 262 60 C334 40 424 60 474 122 C522 152 542 212 522 262 C512 302 482 322 442 326 L400 330 C380 346 350 350 330 346 L300 340 C260 352 200 346 170 332 C150 322 132 312 120 300 Z';
+  const cp=s('clipPath',{id:'cb'},defs);s('path',{d:cerebrum},cp);
+  s('ellipse',{cx:320,cy:470,rx:230,ry:18,fill:'rgba(0,0,0,.10)'},svg);
+  s('path',{d:'M318 330 C322 380 330 420 336 462 L382 462 C376 420 372 380 372 330 Z',fill:'#F2C9C4',stroke:'#D49C96','stroke-width':4},svg);
+  const cbl=s('g',{},svg);s('ellipse',{cx:438,cy:352,rx:76,ry:46,fill:'#F0BFC0',stroke:'#D49C96','stroke-width':4},cbl);
+  for(let i=0;i<4;i++)s('path',{d:`M${376+i*4} ${336+i*10} C 420 ${326+i*12} 470 ${330+i*12} 506 ${340+i*8}`,fill:'none',stroke:'#D49C96','stroke-width':3},cbl);
+  const body=s('path',{d:cerebrum,fill:'#F8D9D6',stroke:'#D49C96','stroke-width':5},svg);
+  const cortexFill=s('path',{d:'M40 20 L250 20 C230 120 220 200 250 360 L40 360 Z',fill:C('blue'),'clip-path':'url(#cb)'},svg);
+  const gyri=s('g',{fill:'none',stroke:'rgba(0,0,0,.14)','stroke-width':4,'stroke-linecap':'round','clip-path':'url(#cb)'},svg);
+  const r=rng(11);for(let i=0;i<16;i++){const x=90+r()*420,y=90+r()*220;s('path',{d:`M${x} ${y} q ${14+r()*20} ${-20+r()*10} ${30+r()*20} ${r()*14-7} t ${30+r()*20} ${r()*14-7}`},gyri)}
+  const outline=drawable(s('path',{d:cerebrum,fill:'none',stroke:'#C98E88','stroke-width':6},svg));
+  const stri=s('path',{d:'M250 238 C220 190 250 132 312 128 C362 126 392 160 388 196',fill:'none',stroke:C('green'),'stroke-width':34,'stroke-linecap':'round'},svg);
+  const strIn=s('path',{d:'M262 230 C246 196 262 156 312 154 C346 154 364 176 364 196',fill:'none',stroke:'#E3D7B8','stroke-width':16,'stroke-linecap':'round'},svg);
+  const thal=s('ellipse',{cx:324,cy:236,rx:46,ry:30,fill:C('amber'),stroke:C('amber-d'),'stroke-width':4},svg);
+  const loop=s('path',{d:'M170 170 C200 110 290 96 330 140 C370 180 360 220 330 236 C290 262 230 300 180 270 C140 246 140 210 170 170',fill:'none',stroke:'#FFFFFF','stroke-width':10,'stroke-linecap':'round','stroke-dasharray':'26 22',opacity:.9},svg);
+  const loopL=loop.getTotalLength();
+  const sig=s('circle',{r:14,fill:'#fff',stroke:C('red'),'stroke-width':6},svg);
+  function label(x,y,lx,ly,col,dark,t1,t2){const g=s('g',{},svg);
+    const ln=drawable(s('path',{d:`M${x} ${y} L${lx} ${ly}`,stroke:col,'stroke-width':4,fill:'none'},g));
+    s('circle',{cx:x,cy:y,r:9,fill:'#fff',stroke:col,'stroke-width':5},g);
+    const bx=s('g',{},g);const w=Math.max(t1.length*17,t2.length*11.5)+44;
+    s('rect',{x:lx-w/2,y:ly-38,width:w,height:76,rx:20,fill:col,style:`filter:drop-shadow(0 6px 0 ${dark}) drop-shadow(0 16px 18px rgba(0,0,0,.18))`},bx);
+    const a=s('text',{x:lx,y:ly-2,'text-anchor':'middle','font-size':28,'font-weight':800,fill:'#fff','font-family':'Inter'},bx);a.textContent=t1;
+    const b=s('text',{x:lx,y:ly+26,'text-anchor':'middle','font-size':19,'font-weight':500,fill:'#fff','font-family':'Inter'},bx);b.textContent=t2;
+    return{g,ln,bx,lx,ly}}
+  const L1=label(150,250,170,420,C('blue'),C('blue-d'),'Cortex','thinking · alarm');
+  const L2=label(372,160,470,96,C('green'),C('green-d'),'Striatum','filter / gatekeeper');
+  const L3=label(366,248,480,286,C('amber'),C('amber-d'),'Thalamus','relay / green light');
+  const list=h('div',{class:'abs',style:{left:'1110px',top:'190px',width:'740px'}},R);
+  const head=h('div',{class:'title',style:{fontSize:'60px',marginBottom:'34px'},html:'<b>A loop in the brain</b>'},list);
+  const st=[[C('blue'),'Cortex','Thoughts &amp; detecting threats'],[C('green'),'Striatum','Filters signals &mdash; less effective in OCD'],
+    [C('amber'),'Thalamus','Relays the &ldquo;green light&rdquo; back'],[C('violet'),'The loop','May contribute to OCD']].map(([c,t1,t2],i)=>{
+    const row=h('div',{style:{display:'flex',gap:'26px',alignItems:'flex-start',marginBottom:'30px'}},list);
+    h('div',{style:{flex:'0 0 64px',height:'64px',borderRadius:'50%',background:c,color:'#fff',fontWeight:800,fontSize:'32px',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:extrude('rgba(0,0,0,.25)',5,.15)},html:String(i+1)},row);
+    const tx=h('div',{},row);h('div',{style:{fontSize:'40px',fontWeight:800,letterSpacing:'-.01em'},html:t1},tx);
+    h('div',{class:'cap',style:{fontSize:'30px',marginTop:'6px',lineHeight:1.25},html:t2},tx);return row});
+  // signal path fractions keyed to words
+  const keys=[[0,0],[T.cortex,0],[T.striatum,.3],[T.thalamus-.1,.3],[T.thalamus+.3,.52],[T.loop,.52],[T.loop+.8,1]];
+  function along(t){if(t<keys[keys.length-1][0]){for(let i=1;i<keys.length;i++)if(t<keys[i][0]){const[a,fa]=keys[i-1],[b,fb]=keys[i];return lerp(fa,fb,eInOut(clamp((t-a)/(b-a))))}}
+    const p=t-keys[keys.length-1][0];return(1+p/1.0+p*p*.15)%1}
+  return t=>{
+    const kb=spring(seg(t,0,1));bw.style.transform=`perspective(2200px) rotateY(${lerp(-30,-6,kb)+Math.sin(t*.8)*2}deg) rotateX(${lerp(14,3,kb)}deg) scale(${lerp(.75,1,kb)}) translateY(${Math.sin(t*1.3)*6}px)`;
+    bw.style.opacity=clamp(t/.3);draw(outline,eInOut(seg(t,0,1)));body.style.opacity=seg(t,.3,.9);gyri.style.opacity=seg(t,.6,1.1);
+    const act=a=>clamp(seg(t,a,a+.3));
+    cortexFill.style.opacity=.3+.7*act(T.cortex);stri.style.opacity=.3+.7*act(T.striatum);strIn.style.opacity=stri.style.opacity;thal.style.opacity=.35+.65*act(T.thalamus);
+    loop.style.opacity=.9*seg(t,T.cortex,T.cortex+.4);loop.style.strokeDashoffset=-t*(t>T.loop?140:50);
+    const p=loop.getPointAtLength(along(t)*loopL);sig.setAttribute('cx',p.x);sig.setAttribute('cy',p.y);sig.style.opacity=seg(t,T.cortex,T.cortex+.3);
+    [[L1,T.cortex],[L2,T.striatum],[L3,T.thalamus]].forEach(([L,a])=>{draw(L.ln,eOut(seg(t,a,a+.3)));L.g.style.opacity=seg(t,a,a+.1);
+      const k=eBack(seg(t,a+.1,a+.45),1.6);L.bx.setAttribute('transform',`translate(${L.lx} ${L.ly}) scale(${Math.max(0,k)}) translate(${-L.lx} ${-L.ly})`)});
+    reveal(head,eOut(seg(t,.3,.9)),20);
+    const starts=[T.cortex,T.striatum,T.thalamus,T.loop];
+    st.forEach((row,i)=>{const k=eOut(seg(t,starts[i],starts[i]+.45));const n=starts.filter(x=>t>=x).length-1;
+      row.style.opacity=k*(i===n?1:.42);row.style.transform=`translateX(${(1-k)*40}px)`;row.style.filter=k<1?`blur(${(1-k)*6}px)`:'none'});
+    camPush(t,.004)}}
+
+/* ================= scene: false-alarm flow ================= */
+function flow(o){
+  const R=root(),X=620,ys=[170,390,610,830],T=o.t;
+  const defs=[['red','False alarm','even if it&rsquo;s not a real threat',T.alarm],['blue','Cortex','thoughts / doubts',T.chain],['green','Striatum','filter &mdash; less effective',T.chain+.35],['amber','Thalamus','green light',T.chain+.7]];
+  const svg=s('svg',{width:1920,height:1080,style:'position:absolute;left:0;top:0'},R);
+  const arrows=[0,1,2].map(i=>{const g=s('g',{},svg);const p=drawable(s('path',{d:`M${X} ${ys[i]+66} L${X} ${ys[i+1]-74}`,stroke:'#1A1A1A','stroke-width':6,'stroke-linecap':'round',fill:'none'},g));
+    const hd=s('path',{d:`M${X-16} ${ys[i+1]-90} L${X} ${ys[i+1]-72} L${X+16} ${ys[i+1]-90}`,stroke:'#1A1A1A','stroke-width':6,'stroke-linecap':'round','stroke-linejoin':'round',fill:'none'},g);return{p,hd,at:i?defs[i+1][3]-.2:T.alarm+.2}});
+  const back=drawable(s('path',{d:`M${X-250} ${ys[3]} C ${X-420} ${ys[3]} ${X-420} ${ys[1]} ${X-270} ${ys[1]}`,stroke:C('violet'),'stroke-width':8,'stroke-linecap':'round',fill:'none'},svg));
+  const backHd=s('path',{d:`M${X-292} ${ys[1]-18} L${X-268} ${ys[1]} L${X-292} ${ys[1]+18}`,stroke:C('violet'),'stroke-width':8,'stroke-linecap':'round','stroke-linejoin':'round',fill:'none'},svg);
+  const pulse=s('circle',{r:14,fill:C('violet')},svg);
+  const pills=defs.map(([c,a,b,at],i)=>{const el=h('div',{class:'abs',style:{left:X-240+'px',top:ys[i]-62+'px',width:'480px',height:'124px',borderRadius:'62px',
+    background:C(c),color:'#fff',textAlign:'center',display:'flex',flexDirection:'column',justifyContent:'center',boxShadow:extrude(C(c+'-d'),12,.22)},
+    html:`<div style="font-size:44px;font-weight:800;letter-spacing:-.01em">${a}</div><div style="font-size:24px;font-weight:500;opacity:.92">${b}</div>`},R);
+    h('div',{class:'abs',style:{inset:0,borderRadius:'inherit',background:'radial-gradient(120% 90% at 20% 0%,rgba(255,255,255,.35),rgba(255,255,255,0) 55%)'}},el);return{el,at}});
+  const right=h('div',{class:'abs',style:{left:'1110px',top:'340px',width:'740px'}},R);
+  const lines=o.lines.map(([t,at],i)=>({at,el:h('div',{class:'title',style:{fontSize:i?'64px':'78px',fontWeight:i?500:800,marginBottom:'18px',color:i?'#121212':C('violet')},html:t},right)}));
+  return t=>{
+    const ph=t>T.loop?((t-T.loop)*(1+(t-T.loop)*.3))%1:-1;
+    pills.forEach((p,i)=>{const k=spring(seg(t,p.at,p.at+.8));let glow=0;if(ph>=0)glow=(1+Math.floor(ph*3))===i?1:0;
+      p.el.style.transform=`perspective(1200px) translateY(${(1-k)*80-glow*10}px) rotateX(${lerp(70,0,k)}deg) scale(${lerp(.6,1,k)*(1+glow*.05)})`;p.el.style.opacity=clamp(k*3)});
+    arrows.forEach((a,i)=>{const at=i===0?T.alarm+.3:pills[i+1].at-.1;draw(a.p,eOut(seg(t,at,at+.35)));a.hd.style.opacity=seg(t,at+.3,at+.35)});
+    draw(back,eInOut(seg(t,T.back,T.back+.6)));backHd.style.opacity=seg(t,T.back+.5,T.back+.6);
+    if(ph>=0){const pt=back.getPointAtLength(back._L*ph);pulse.setAttribute('cx',pt.x);pulse.setAttribute('cy',pt.y);pulse.style.opacity=1}else pulse.style.opacity=0;
+    lines.forEach(l=>{const k=eOut(seg(t,l.at,l.at+.5));l.el.style.opacity=k;l.el.style.transform=`translateX(${(1-k)*40}px)`;l.el.style.filter=k<1?`blur(${(1-k)*8}px)`:'none'});
+    camPush(t,.006)}}
+
+/* ================= scene: speech bubbles (reassurance) ================= */
+function bubbles(o){
+  const R=root();
+  const mk=(y,c,dark,ink,mark,markCol,txt)=>{const sl=slab(R,{x:900,y,w:1240,h:250,color:c,dark,radius:60,depth:14,floor:false});
+    if(c==='#FFFFFF')sl.face.style.border='3px solid #ECEBE7';
+    h('div',{class:'abs',style:{left:'170px',right:'50px',top:0,bottom:0,display:'flex',alignItems:'center',fontSize:'50px',fontWeight:700,letterSpacing:'-.02em',lineHeight:1.15,color:ink},html:txt},sl.face);
+    const m=h('div',{class:'abs',style:{left:'40px',top:'65px',width:'110px',height:'110px',borderRadius:'50%',background:markCol,color:'#fff',fontSize:'62px',fontWeight:800,display:'flex',alignItems:'center',justifyContent:'center'},html:mark},sl.face);
+    const tail=h('div',{class:'abs',style:{left:'120px',bottom:'-34px',width:'60px',height:'60px',background:c,transform:'rotate(45deg)',borderRadius:'8px',boxShadow:`8px 8px 0 ${dark}`,zIndex:-1}},sl.card);
+    return{sl,m}};
+  const A=mk(300,'#FFFFFF',C('soft-d'),'#121212','&times;',C('red'),'&ldquo;Don&rsquo;t worry, it&rsquo;s fine.&rdquo;');
+  const nA=h('div',{class:'chip abs',style:{left:'1150px',top:'450px',fontSize:'34px',background:C('red'),color:'#fff',boxShadow:extrude(C('red-d'),6,.2)},html:'reinforces the cycle'},R);
+  const B=mk(730,C('teal'),C('teal-d'),'#fff','&#10003;',C('teal-d'),'&ldquo;I can see this is stressful for you. What kind of support would help right now?&rdquo;');
+  const nB=h('div',{class:'chip abs',style:{left:'50%',top:'960px',fontSize:'38px',background:'#121212',color:'#fff',boxShadow:extrude('#000',6,.2)},html:'Compassion &mdash; without joining the ritual'},R);
+  const tryI=h('div',{class:'cap abs',style:{left:'280px',top:'530px',fontSize:'46px',color:'#555'},html:'Try instead &darr;'},R);
+  return t=>{slabIn(A.sl,t,o.a,{idle:false,rx0:0,ry0:-60});pop(A.m,eBack(seg(t,o.a+.4,o.a+.8),2));
+    pop(nA,eBack(seg(t,o.na,o.na+.4),1.6));A.sl.wrap.style.opacity=clamp((t-o.a)/.18)*lerp(1,.6,seg(t,o.b,o.b+.5));
+    reveal(tryI,eOut(seg(t,o.tr,o.tr+.4)));
+    slabIn(B.sl,t,o.b,{idle:false,rx0:0,ry0:60});pop(B.m,eBack(seg(t,o.b+.4,o.b+.8),2));
+    pop(nB,eBack(seg(t,o.nb,o.nb+.4),1.5),'translateX(-50%)');camPush(t,.004)}}
+
+/* ================= scene: medication volume ================= */
+function volume(o){
+  const R=root();
+  const title=h('div',{class:'title abs',style:{left:0,right:0,top:'120px',textAlign:'center',fontSize:'84px'},html:'<b>Medication</b> may help'},R);
+  const sub=h('div',{class:'cap abs',style:{left:0,right:0,top:'230px',textAlign:'center',fontSize:'50px'},html:'turn the volume <b style="color:#121212">down</b>'},R);
+  const sl=slab(R,{x:960,y:590,w:1100,h:300,color:'#FFFFFF',dark:C('soft-d'),radius:150,depth:16});sl.face.style.border='3px solid #ECEBE7';
+  const sp=icon(sl.face,'speaker',{size:150,color:'#121212',sw:6,x:70,y:75});
+  const waves=s('g',{fill:'none',stroke:'#121212','stroke-width':6,'stroke-linecap':'round'},sp.svg);
+  const wv=[s('path',{d:'M64 38 a16 16 0 0 1 0 24'},waves),s('path',{d:'M72 28 a28 28 0 0 1 0 44'},waves),s('path',{d:'M80 18 a40 40 0 0 1 0 64'},waves)];
+  const N=14,bars=[];for(let i=0;i<N;i++)bars.push(h('div',{class:'abs',style:{left:300+i*52+'px',bottom:'70px',width:'34px',borderRadius:'10px',background:C('violet')}},sl.face));
+  const chips=o.chips.map(([txt,at,c])=>({at,el:h('div',{class:'chip',style:{fontSize:'40px',background:C(c),color:'#fff',boxShadow:extrude(C(c+'-d'),6,.2)},html:txt})}));
+  const row=h('div',{class:'abs',style:{left:0,right:0,top:'870px',display:'flex',justifyContent:'center',gap:'28px',alignItems:'center'}},R);
+  chips.forEach((x,i)=>{row.appendChild(x.el)});
+  return t=>{reveal(title,eOut(seg(t,0,.5)));reveal(sub,eOut(seg(t,o.turn,o.turn+.5)));
+    slabIn(sl,t,.1,{rx0:60,ry0:0});sp.draw(eInOut(seg(t,.3,1)));
+    const lvl=lerp(1,.25,eInOut(seg(t,o.down,o.down+1.2)));
+    bars.forEach((b,i)=>{const on=(i+1)/N<=lvl+.001;const hgt=40+i*9;const k=eOut(seg(t,.4+i*.03,.8+i*.03));
+      b.style.height=hgt*k+'px';b.style.background=on?C('violet'):'#E6E4F0'});
+    wv.forEach((w,i)=>w.style.opacity=(i/3)<lvl-.05?1:.12);
+    chips.forEach(x=>pop(x.el,eBack(seg(t,x.at,x.at+.35),1.8)));camPush(t,.004)}}
+
+/* ================= clip table (times = seconds in the source video) ================= */
+const rel=(tin,arr)=>arr.map(x=>x-tin);
+const CLIPS={
+  'not-just-tidy':{in:5.98,out:10.0,make:T=>tiles({title:'OCD is <b>not</b> just&hellip;',titleAt:0,noFocus:true,
+    items:[{label:'Clean',icon:'sparkle',at:7.8-T,strike:8.2-T},{label:'Tidy',icon:'review',at:8.32-T,strike:8.85-T},{label:'Organized',icon:'build',at:9.0-T,strike:9.45-T}]})},
+  'ocpd':{in:12.44,out:20.0,make:T=>term({kicker:'That could be more like',term:'OCPD',color:'violet',termAt:.15,kAt:0,
+    def:['<b>Obsessive-compulsive personality disorder</b>',12.9-T],sub:['A long-standing pattern of',15.76-T],
+    chips:[['Perfectionism',17.52-T,'violet'],['Order',18.6-T,'violet'],['Control',19.42-T,'violet']]})},
+  'two-elements':{in:24.04,out:27.9,make:T=>twoCards({titleAt:0,at:[25.56-T,25.82-T],focus:27.14-T})},
+  'obsessions':{in:27.9,out:34.5,make:T=>concept({color:'yellow',kicker:'1 &middot; OBSESSIONS',l1:'Unwanted',l2:'obsessions',icon:iconHead,
+    tags:[['Distressing',28.9-T],['Intrusive',29.82-T],['Unwanted',31.18-T]],
+    anim(ic,t){draw(ic.head,eInOut(seg(t,.3,1.2)));draw(ic.scrib,eInOut(seg(t,.8,3.2)));ic.sg.setAttribute('transform',`rotate(${Math.sin(t*7)*4*seg(t,3.2,3.6)} 98 74)`)}})},
+  'obsession-themes':{in:37.9,out:46.2,make:T=>tiles({title:'They can attach to <b>almost anything</b>',titleSize:'76px',titleAt:0,
+    items:[{label:'Religion',icon:'book',at:38.5-T,color:'yellow'},{label:'Super&shy;stition',icon:'star',at:39.06-T,color:'yellow'},{label:'Fear of germs',icon:'germ',at:41.68-T,color:'yellow'},{label:'Fear of mistakes',icon:'warn',at:43.08-T,color:'yellow'},{label:'Fear of harming someone',icon:'heart',at:44.94-T,color:'yellow'}]})},
+  'ego-dystonic':{in:52.9,out:56.95,make:T=>term({kicker:'The thought goes against what the person <b style="color:#121212">wants</b> and <b style="color:#121212">values</b>',kTop:'230px',
+    term:'Ego-dystonic',termW:1100,color:'coral',ink:'#121212',termAt:55.4-T,kAt:0,def:['This is what we call it',54.5-T],defTop:'680px'})},
+  'compulsions':{in:57.0,out:63.1,make:T=>concept({color:'magenta',ink:'#fff',kicker:'2 &middot; COMPULSIONS',l1:'Repeated',l2:'compulsions',icon:iconCheck,
+    tags:[['Feels driven to do',60.24-T],['To reduce anxiety',61.44-T]],
+    anim(ic,t){draw(ic.box,eInOut(seg(t,.3,1)));const p=Math.max(0,t-1.1),f=(p%.9)/.9;
+      draw(ic.tick,t<1.1?0:(f<.55?eOut(f/.55):1-eInOut((f-.55)/.45)));draw(ic.ring,eInOut(seg(t,.9,1.6)));ic.hd.style.opacity=seg(t,1.5,1.6);
+      ic.arc.setAttribute('transform',`rotate(${Math.max(0,t-1.6)*240} 100 100)`)}})},
+  'visible-compulsions':{in:71.0,out:76.1,make:T=>tiles({title:'Compulsions can be <b>visible</b>',titleAt:0,
+    items:[{label:'Washing hands<br>again &amp; again',icon:'drop',at:72.32-T,color:'magenta'},{label:'Checking<br>again &amp; again',icon:'lock',at:74.48-T,color:'magenta'}]})},
+  'rule-compulsions':{in:79.8,out:85.2,make:T=>tiles({title:'Repeating actions <b>by a rule</b>',titleAt:0,
+    items:[{label:'TV volume on<br>an even number',icon:'tv',at:80.42-T,color:'magenta'},{label:'Clicking a pen<br>3 times',icon:'pen',at:82.88-T,color:'magenta'}]})},
+  'mental-compulsions':{in:89.8,out:99.5,make:T=>tiles({title:'Some are <b>invisible</b> &mdash; mental',titleAt:.6,
+    items:[{label:'Counting silently',icon:'count',at:92.02-T,color:'violet'},{label:'Replaying conversations',icon:'replay',at:92.98-T,color:'violet'},{label:'Reviewing what they did',icon:'review',at:95.74-T,color:'violet'},{label:'Asking for reassurance',icon:'ask',at:97.34-T,color:'violet'}]})},
+  'thought-vs-anxiety':{in:111.8,out:116.9,make:T=>versus({a:113.2-T,strike:113.9-T,b:115.1-T})},
+  'lock-example':{in:117.86,out:125.0,make:T=>steps({head:['&ldquo;Did I lock the door?&rdquo;',119.8-T],headSize:'92px',sub:['A doubt triggers anxiety',.1],subTop:'225px',
+    items:[{label:'Doubt',icon:'question',color:'yellow',at:118.16-T},{label:'Anxiety',icon:'pulse',color:'coral',at:119.1-T},{label:'Checks',icon:'lock',color:'magenta',at:122.58-T},{label:'Feels better',sub:'for a moment',icon:'clock',color:'teal',at:123.32-T}]})},
+  'ocd-loop':{in:127.0,out:133.2,make:T=>cycle({cards:[0,.15,.3,.45],laps:[129.0-T,130.9-T,132.1-T,133.0-T],
+    titles:[['Temporary<br>relief',127.3-T,C('teal')],['The OCD<br>loop',130.88-T],['Like a<br>trap',132.38-T,C('red')]]})},
+  'no-single-cause':{in:141.4,out:150.6,make:T=>tiles({title:'OCD has <b>no single cause</b>',titleAt:0,
+    items:[{label:'Genetics',icon:'dna',at:144.26-T,color:'blue'},{label:'Life stress',icon:'bolt',at:145.24-T,color:'blue'},{label:'Life experiences',icon:'path',at:145.96-T,color:'blue'}],
+    banner:['Stress can trigger or worsen symptoms',147.92-T]})},
+  'brain-circuits':{in:153.0,out:160.5,make:T=>brain({t:{cortex:155.88-T,striatum:156.46-T,thalamus:157.6-T,loop:159.0-T}})},
+  'false-alarm':{in:168.4,out:175.0,make:T=>flow({t:{chain:.1,back:1.6,alarm:172.6-T,loop:173.74-T},
+    lines:[['A false alarm',172.6-T],['&rarr; keeps',173.74-T],['&nbsp;&nbsp;&nbsp;coming back',174.12-T]]})},
+  'reassurance':{in:176.1,out:188.6,make:T=>bubbles({a:176.35-T,na:179.76-T,tr:182.5-T,b:183.8-T,nb:186.0-T})},
+  'erp':{in:195.9,out:206.9,make:T=>steps({head:['<b>OCD is treatable</b>',0],headTop:'90px',sub:['<b style="color:#1FA6A0">ERP</b> &middot; Exposure &amp; Response Prevention',197.1-T],subTop:'205px',y:560,span:1300,noDim:true,
+    items:[{label:'Face fears',icon:'target',color:'teal',at:200.84-T},{label:'Tolerate uncertainty',icon:'question',color:'teal',at:202.98-T},{label:'No compulsions',icon:'noloop',color:'teal',at:204.68-T}]})},
+  'medication':{in:208.9,out:214.2,make:T=>volume({turn:209.04-T,down:209.6-T,chips:[['On its own',211.56-T,'violet'],['or with therapy',212.62-T,'teal']]})},
+  'remember':{in:222.5,out:230.43,make:T=>steps({head:['<b>Remember</b>',0],y:520,span:1300,noDim:true,
+    items:[{label:'Look beyond the visible',icon:'eye',color:'blue',at:222.98-T},{label:'Listen without judgment',icon:'ear',color:'teal',at:224.46-T},{label:'Create a safer workplace',icon:'build',color:'violet',at:226.42-T}]})},
+};
+
+const params=new URLSearchParams(location.search);
+const id=params.get('clip');
+if(id==='__list'){window.CLIPS=Object.fromEntries(Object.entries(CLIPS).map(([k,v])=>[k,{in:v.in,out:v.out}]))}
+else{const c=CLIPS[id];const seek=c.make(c.in);window.DUR=c.out-c.in;window.seek=seek;seek(+(params.get('t')||0))}
+window.CLIP_LIST=Object.fromEntries(Object.entries(CLIPS).map(([k,v])=>[k,{in:v.in,out:v.out}]));
+</script>
+</body>
+</html>
