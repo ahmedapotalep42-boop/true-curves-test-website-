@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>Dr. Aziz Eid · Endodontic Case</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+  :root{
+    --navy:#0D1B2A; --navy-2:#15304A; --off:#F7F5F0; --gold:#C8A96B; --ice:#B8DDE0;
+    --ar:'IBM Plex Sans Arabic',sans-serif; --en:'Manrope',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#222;display:flex;flex-direction:column;align-items:center;gap:40px;padding:40px 0}
+
+  .slide{
+    position:relative;width:1080px;height:1350px;overflow:hidden;color:var(--off);font-family:var(--ar);
+    background:
+      radial-gradient(120% 70% at 85% 0%, rgba(184,221,224,.07), transparent 60%),
+      linear-gradient(180deg,var(--navy-2) 0%,#11243A 38%,var(--navy) 100%);
+  }
+
+  /* header */
+  .logo{position:absolute;top:34px;left:56px;height:96px}
+  .tag{position:absolute;top:70px;right:56px;direction:ltr;font-family:var(--en);font-weight:600;font-size:15px;letter-spacing:.22em;color:var(--gold)}
+
+  /* x-ray frame */
+  .frame{
+    position:absolute;border-radius:16px;overflow:hidden;background:#000;
+    border:1.5px solid transparent;
+    background:linear-gradient(#000,#000) padding-box,
+               linear-gradient(160deg,rgba(200,169,107,.15),rgba(200,169,107,.9) 45%,rgba(200,169,107,.2)) border-box;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,.6);
+  }
+  .frame img{width:100%;height:100%;object-fit:cover;display:block;filter:contrast(1.04)}
+  .single{top:160px;left:56px;width:968px;height:980px}
+
+  .pill{
+    position:absolute;top:22px;right:22px;padding:10px 26px 12px;border-radius:999px;
+    font-weight:700;font-size:26px;line-height:1.35;
+    background:rgba(13,27,42,.88);color:var(--off);border:1px solid rgba(247,245,240,.18);
+    backdrop-filter:blur(6px);
+  }
+  .pill.ice{background:var(--ice);color:var(--navy);border-color:transparent}
+  .pill.sm{font-size:22px;padding:8px 20px 10px;top:18px;right:18px}
+
+  .caption{position:absolute;top:1168px;right:56px;left:56px;font-size:30px;font-weight:400;line-height:1.4;color:var(--off)}
+
+  /* footer */
+  .handle{position:absolute;bottom:42px;left:56px;direction:ltr;font-family:var(--en);font-size:22px;font-weight:400;color:rgba(247,245,240,.75);letter-spacing:.02em}
+  .sig{position:absolute;bottom:30px;right:56px;width:190px}
+
+  /* cover */
+  .title{position:absolute;top:186px;right:56px;font-size:66px;font-weight:700;line-height:1.35}
+  .subtitle{position:absolute;top:286px;right:56px;font-size:32px;font-weight:400;line-height:1.4;color:var(--ice)}
+  .rule{position:absolute;top:362px;right:56px;width:150px;height:1.5px;background:var(--gold)}
+  .pair{top:420px;width:472px;height:690px}
+  .pair.r{right:56px}.pair.l{left:56px}
+  .spec{position:absolute;top:1144px;right:56px;font-size:27px;font-weight:400;line-height:1.4;color:rgba(247,245,240,.9)}
+  .cta{position:absolute;top:1144px;left:56px;font-size:28px;font-weight:700;line-height:1.4;color:var(--gold)}
+  .cta span{font-family:var(--en);font-weight:700;letter-spacing:.02em}
+  .divider{position:absolute;top:1214px;left:56px;right:56px;height:1px;background:rgba(247,245,240,.12)}
+
+  /* process pair (inner slide) */
+  .duo{top:160px;width:472px;height:980px}
+  .duo.r{right:56px}.duo.l{left:56px}
+</style>
+</head>
+<body>
+
+<!-- 01 · COVER -->
+<section class="slide" id="s1">
+  <img class="logo" src="assets/logo_horizontal_dark.png" alt="">
+  <div class="tag">ENDODONTIC CASE · 02</div>
+  <h1 class="title">علاج عصب ضرس سفلي</h1>
+  <p class="subtitle">دقة في التشخيص .. فرق في النتيجة</p>
+  <div class="rule"></div>
+  <div class="frame pair r"><img src="assets/01_preop.jpg" style="object-position:70% 50%" alt=""><div class="pill">قبل</div></div>
+  <div class="frame pair l"><img src="assets/04_obturation.jpg" style="object-position:50% 50%" alt=""><div class="pill ice">بعد</div></div>
+  <p class="spec">أخصائي علاج العصب والتقويم الشفاف</p>
+  <p class="cta">احجز موعدك · <span>98949422</span></p>
+  <div class="divider"></div>
+  <div class="handle">@dr.aziz.eid</div>
+  <img class="sig" src="assets/signature_gold.png" alt="">
+</section>
+
+<!-- 02 · BEFORE -->
+<section class="slide" id="s2">
+  <img class="logo" src="assets/logo_horizontal_dark.png" alt="">
+  <div class="tag">ENDODONTIC CASE · 1/4</div>
+  <div class="frame single"><img src="assets/01_preop.jpg" style="object-position:50% 58%" alt=""><div class="pill">قبل العلاج</div></div>
+  <p class="caption">التشخيص بالأشعة قبل البدء</p>
+  <div class="handle">@dr.aziz.eid</div>
+  <img class="sig" src="assets/signature_gold.png" alt="">
+</section>
+
+<!-- 03 · WORKING LENGTH -->
+<section class="slide" id="s3">
+  <img class="logo" src="assets/logo_horizontal_dark.png" alt="">
+  <div class="tag">ENDODONTIC CASE · 2/4</div>
+  <div class="frame duo r"><img src="assets/02_working_length_a.jpg" style="object-position:48% 50%" alt=""><div class="pill sm">أثناء العلاج</div></div>
+  <div class="frame duo l"><img src="assets/03_working_length_b.jpg" style="object-position:50% 50%" alt=""></div>
+  <p class="caption">تحديد الطول العامل وتتبّع تفرّع القنوات حتى نهايتها</p>
+  <div class="handle">@dr.aziz.eid</div>
+  <img class="sig" src="assets/signature_gold.png" alt="">
+</section>
+
+<!-- 04 · OBTURATION -->
+<section class="slide" id="s4">
+  <img class="logo" src="assets/logo_horizontal_dark.png" alt="">
+  <div class="tag">ENDODONTIC CASE · 3/4</div>
+  <div class="frame single"><img src="assets/04_obturation.jpg" style="object-position:50% 58%" alt=""><div class="pill ice">بعد العلاج</div></div>
+  <p class="caption">حشو القنوات بالكامل وإغلاقها بإحكام</p>
+  <div class="handle">@dr.aziz.eid</div>
+  <img class="sig" src="assets/signature_gold.png" alt="">
+</section>
+
+<!-- 05 · FOLLOW-UP -->
+<section class="slide" id="s5">
+  <img class="logo" src="assets/logo_horizontal_dark.png" alt="">
+  <div class="tag">ENDODONTIC CASE · 4/4</div>
+  <div class="frame single"><img src="assets/05_follow_up.jpg" style="object-position:50% 58%" alt=""><div class="pill ice">المتابعة</div></div>
+  <p class="caption">صورة المتابعة بعد العلاج</p>
+  <div class="handle">@dr.aziz.eid</div>
+  <img class="sig" src="assets/signature_gold.png" alt="">
+</section>
+
+</body>
+</html>
