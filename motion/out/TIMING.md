@@ -27,3 +27,5 @@ Place each clip on a track above your video at its **In** time; it ends at **Out
 | 20 | `20_3m42s50_remember.mp4` | 3:42.50 | 3:50.43 | So look beyond the visible, listen without judgment. Help create a safer, more understanding workplace. |
 
 All on-screen text comes from your script and infographics; no statistics or quotes were added.
+
+**Transitions:** every cut between the footage and a graphic is a lens-blur transition, about 0.45s total: defocus toward the cut, a 0.24s cross-dissolve at peak blur, then refocus. In your editor, use a Lens/Gaussian Blur transition plus Cross Dissolve centred on each In/Out time.
