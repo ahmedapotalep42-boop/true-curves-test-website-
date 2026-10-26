@@ -1,31 +1,58 @@
 # Diabetes video — motion graphics timing
 
-Speaker: **Dr Nada Ramadan, PhD**. Source: `raw diabetes.mp4` (2:36, 1024×576, 30 fps).
+Speaker: **Dr Nada Ramadan, PhD**. Source: 2:36, 1024×576, 30 fps.
 
-All clips are 1920×1080 at 30 fps. Opaque clips are `.mp4` on a solid white background; `.mov` clips are ProRes 4444 with a transparent background and sit on a track **above** your footage.
+**Layout:** only three full-screen graphics. Everywhere else Dr Ramadan stays on camera and a photo card slides in beside her, in the clear third of the frame.
+
+Clips are 1920×1080 at 30 fps. `.mp4` = full-screen on solid white. `.mov` = ProRes 4444 with a transparent background, to sit on a track **above** your footage.
 
 **Times are measured from the start of your original file.** The review preview drops the first 3.30s of black lead-in, so it runs 3.30s ahead of these numbers.
 
-| # | File | In | Out | Line it covers |
-|---|---|---|---|---|
-| 0 | `00_0m03s30_title.mov` | 0:03.30 | 0:06.48 | &mdash; (no speech) |
-| 1 | `01_0m07s30_lower-third.mov` | 0:07.30 | 0:12.00 | Nada. I'm a diabeticologist, and I want to talk to you today about diabetes. |
-| 2 | `02_0m12s00_common.mp4` | 0:12.00 | 0:17.00 | Diabetes is a very common disease worldwide, and it's good to know some information about |
-| 3 | `03_0m18s10_what-is.mp4` | 0:18.10 | 0:23.90 | diabetes? Diabetes means increase in the blood sugar, and it could be due to |
-| 4 | `04_0m23s90_causes.mp4` | 0:23.90 | 0:29.80 | problem in the insulin secretion from the body, or it could be due to insulin resistance. |
-| 5 | `05_0m36s20_symptoms.mp4` | 0:36.20 | 0:50.26 | These symptoms include fatigue, blurring of vision, and increase the frequency of urination, increase the sense of thirst. Unexplained weight loss also is a very significant symptom. There are |
-| 6 | `06_0m50s26_two-types.mp4` | 0:50.26 | 1:07.50 | two types of diabetes, type one, which is usually common in younger age, and it happens because of lack of insulin secretion, and type two diabetes, which is because of insulin resistance and it's common as like a familial disease that runs in families. |
-| 7 | `07_1m11s16_complications.mp4` | 1:11.16 | 1:35.20 | complications. It may affect the eye, causing something called diabetic retinopathy, and it also may affect the nerves in the extremities, like the legs and the hands, causing numbness and pin-needle sensation. It could also affect the kidneys, and also it could affect the heart, making this patient more liable for heart attacks and more liable for strokes. |
-| 8 | `08_1m35s20_invisible.mp4` | 1:35.20 | 1:39.60 | That's why diabetes is considered as an invisible disability. There are |
-| 9 | `09_1m43s90_advice.mp4` | 1:43.90 | 1:54.30 | Please keep yourself hydrated. Don't miss your meals. Take your meals- and take your snacks. And please do have good choices for the food and avoid any junk food. |
-| 10 | `10_1m56s86_check-glucose.mp4` | 1:56.86 | 1:58.70 | please check your blood glucose. And |
-| 11 | `11_1m59s36_hypo-rescue.mp4` | 1:59.36 | 2:12.50 | hypoglycemia, don't leave yourself like this. Try to take, um, some juice or some, like, sugar tablets or whatever, and check your blood glucose and make sure that it's not hypoglycemic anymore. And |
-| 12 | `12_2m14s40_colleague.mp4` | 2:14.40 | 2:24.00 | your colleagues who looks unwell, please check his blood sugar as soon as possible. And if there's no glucometer around, then give him a sugary drink or some juice |
-| 13 | `13_2m25s40_fatal.mp4` | 2:25.40 | 2:29.60 | is fatal, so we have to prevent hypoglycemia as we can. |
-| 14 | `14_2m30s90_closing.mp4` | 2:30.90 | 2:36.40 | is not a stigma, so please support your colleagues who are living with diabetes. Thank you. |
+| # | File | Type | In | Out | Line it covers |
+|---|---|---|---|---|---|
+| 0 | `00_0m03s30_title.mov` | overlay | 0:03.30 | 0:06.48 | &mdash; (no speech) |
+| 1 | `01_0m07s30_lower-third.mov` | overlay | 0:07.30 | 0:12.00 | Nada. I'm a diabeticologist, and I want to talk to you today about diabetes. |
+| 2 | `02_0m12s90_sp-common.mov` | side panel | 0:12.90 | 0:17.30 | common disease worldwide, and it's good to know some information about it. |
+| 3 | `03_0m18s10_what-is.mp4` | **full screen** | 0:18.10 | 0:23.90 | diabetes? Diabetes means increase in the blood sugar, and it could be due to |
+| 4 | `04_0m24s10_sp-insulin.mov` | side panel | 0:24.10 | 0:29.70 | problem in the insulin secretion from the body, or it could be due to insulin resistance. |
+| 5 | `05_0m37s60_sp-symptoms1.mov` | side panel | 0:37.60 | 0:42.60 | fatigue, blurring of vision, and increase the frequency of urination, |
+| 6 | `06_0m43s00_sp-symptoms2.mov` | side panel | 0:43.00 | 0:49.80 | increase the sense of thirst. Unexplained weight loss also is a very significant symptom. |
+| 7 | `07_0m51s00_two-types.mp4` | **full screen** | 0:51.00 | 1:07.50 | diabetes, type one, which is usually common in younger age, and it happens because of lack of insulin secretion, and type two diabetes, which is because of insulin resistance and it's common as like a familial disease that runs in families. |
+| 8 | `08_1m11s16_complications.mp4` | **full screen** | 1:11.16 | 1:34.00 | complications. It may affect the eye, causing something called diabetic retinopathy, and it also may affect the nerves in the extremities, like the legs and the hands, causing numbness and pin-needle sensation. It could also affect the kidneys, and also it could affect the heart, making this patient more liable for heart attacks and more liable for |
+| 9 | `09_1m36s60_sp-invisible.mov` | side panel | 1:36.60 | 1:39.60 | is considered as an invisible disability. There are |
+| 10 | `10_1m44s20_sp-hydrate.mov` | side panel | 1:44.20 | 1:46.20 | keep yourself hydrated. |
+| 11 | `11_1m46s40_sp-meals.mov` | side panel | 1:46.40 | 1:50.20 | miss your meals. Take your meals- and take your snacks. And please |
+| 12 | `12_1m52s50_sp-junk.mov` | side panel | 1:52.50 | 1:56.00 | and avoid any junk food. And if you are feeling tired or |
+| 13 | `13_1m56s90_sp-check.mov` | side panel | 1:56.90 | 1:59.20 | please check your blood glucose. And if you have |
+| 14 | `14_2m03s60_sp-hypo.mov` | side panel | 2:03.60 | 2:08.00 | um, some juice or some, like, sugar tablets or whatever, and |
+| 15 | `15_2m14s50_sp-colleague.mov` | side panel | 2:14.50 | 2:19.40 | colleagues who looks unwell, please check his blood sugar as soon as possible. And if there's no |
+| 16 | `16_2m21s50_sp-sugar.mov` | side panel | 2:21.50 | 2:24.40 | a sugary drink or some juice because |
+| 17 | `17_2m25s40_sp-fatal.mov` | side panel | 2:25.40 | 2:29.40 | is fatal, so we have to prevent hypoglycemia as we can. |
+| 18 | `18_2m30s90_sp-closing.mov` | side panel | 2:30.90 | 2:36.30 | is not a stigma, so please support your colleagues who are living with diabetes. Thank you. |
 
-**Transitions:** every cut between the footage and a graphic is a lens-blur transition, about 0.45s total (defocus, 0.24s cross-dissolve at peak blur, refocus). Transparent overlays have no blur cut.
+## Stock images
 
-**Subtitles:** `subtitles.ass` keeps the word-by-word animation, `subtitles.srt` is plain text. Both are in original-file time and are hidden while a graphic is on screen.
+All photos are Freepik free-licence stock, licensed through Magnific. No AI-generated images.
 
-**Wording:** every on-screen line comes from Dr Ramadan’s own words. No figures or statistics were added. She says “diabeticologist” on camera; the name card reads **Diabetologist** — tell me if you want it changed.
+| Panel | Image |
+|---|---|
+| `sp-common` | Stethoscope over the globe |
+| `sp-insulin` | Diabetic patient using an insulin pen |
+| `sp-symptoms1` | Exhausted overworked woman at the office |
+| `sp-symptoms2` | Businesswoman having a glass of water at work |
+| `sp-invisible` | Lifestyle of people in the office |
+| `sp-hydrate` | Woman drinking water while working |
+| `sp-meals` | Healthy vegetable salad bowl |
+| `sp-junk` | Junk food tray |
+| `sp-check` | Healthcare professional checking glucose levels |
+| `sp-hypo` | Glass of orange juice |
+| `sp-colleague` | Close up happy colleagues at work |
+| `sp-sugar` | Glass of orange juice |
+| `sp-fatal` | Healthcare professional checking glucose levels |
+| `sp-closing` | Group of smiling colleagues holding hands |
+
+**Transitions:** every cut between the footage and a full-screen graphic is a lens-blur transition (defocus, 0.24s cross-dissolve at peak blur, refocus). Side panels slide in and out and leave the footage sharp.
+
+**Subtitles:** `subtitles.ass` keeps the word-by-word animation, `subtitles.srt` is plain text. Both are in original-file time and are hidden while a full-screen graphic is on screen.
+
+**Wording:** every on-screen line comes from Dr Ramadan’s own words. No figures or statistics were added.

@@ -2,3 +2,4 @@ motion/work/
 node_modules/
 motion/diabetes/work/
 motion/diabetes/assets/*.jpg
+motion/diabetes/out/*.mov

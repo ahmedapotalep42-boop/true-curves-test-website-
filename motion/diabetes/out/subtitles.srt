@@ -3,8 +3,8 @@
 Hi, I'm Nada.
 
 2
-00:00:17,020 --> 00:00:17,590
-it.
+00:00:12,000 --> 00:00:12,980
+Diabetes is a very
 
 3
 00:00:17,800 --> 00:00:18,120
@@ -31,53 +31,117 @@ blood sugar to exclude if
 you have diabetes.
 
 9
+00:00:36,200 --> 00:00:37,820
+These symptoms include
+
+10
+00:00:49,940 --> 00:00:50,980
+There are two types of
+
+11
+00:00:50,980 --> 00:00:51,860
+diabetes,
+
+12
 00:01:07,500 --> 00:01:09,420
 Diabetes is a chronic disease,
 
-10
+13
 00:01:09,420 --> 00:01:10,700
 that's why it's associated
 
-11
+14
 00:01:10,700 --> 00:01:11,160
 with many
 
-12
+15
+00:01:34,240 --> 00:01:35,110
+strokes.
+
+16
+00:01:35,380 --> 00:01:36,660
+That's why diabetes
+
+17
 00:01:39,680 --> 00:01:41,120
 some advices that I usually
 
-13
+18
 00:01:41,120 --> 00:01:42,280
 give to my patients,
 
-14
+19
 00:01:42,280 --> 00:01:44,030
 especially who do long shifts.
 
-15
-00:01:54,500 --> 00:01:55,480
-And if you are feeling
+20
+00:01:44,100 --> 00:01:44,420
+Please
 
-16
-00:01:55,480 --> 00:01:56,860
-tired or unwell,
+21
+00:01:46,240 --> 00:01:46,600
+Don't
 
-17
-00:01:58,760 --> 00:01:59,360
-if you have
+22
+00:01:50,560 --> 00:01:52,240
+do have good choices for
 
-18
-00:02:12,640 --> 00:02:13,479
-for everyone,
+23
+00:01:52,240 --> 00:01:52,640
+the food
 
-19
+24
+00:01:56,180 --> 00:01:57,320
+unwell, please
+
+25
+00:01:59,360 --> 00:02:00,650
+hypoglycemia,
+
+26
+00:02:01,020 --> 00:02:02,140
+don't leave yourself like
+
+27
+00:02:02,140 --> 00:02:03,590
+this. Try to take,
+
+28
+00:02:08,200 --> 00:02:09,280
+check your blood glucose and
+
+29
+00:02:09,280 --> 00:02:10,840
+make sure that it's not
+
+30
+00:02:10,840 --> 00:02:12,480
+hypoglycemic anymore.
+
+31
+00:02:12,480 --> 00:02:13,479
+And for everyone,
+
+32
 00:02:13,479 --> 00:02:14,400
 if you notice one of
 
-20
-00:02:24,180 --> 00:02:25,600
-because hypoglycemia is
+33
+00:02:14,400 --> 00:02:14,620
+your
 
-21
+34
+00:02:19,500 --> 00:02:20,990
+glucometer around,
+
+35
+00:02:21,020 --> 00:02:21,620
+then give him
+
+36
+00:02:24,480 --> 00:02:25,600
+hypoglycemia is
+
+37
 00:02:30,460 --> 00:02:31,000
 Diabetes

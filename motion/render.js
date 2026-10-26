@@ -18,6 +18,8 @@ const PAGE = 'file://' + path.resolve(__dirname, process.env.PAGE || 'ocd.html')
   }
   await page.goto(PAGE + '?clip=' + clip);
   await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(() => Promise.all([...document.images].map(i => i.complete ? 0 :
+    new Promise(r => { i.onload = i.onerror = r; }))));  // side-panel photos must be decoded
   const dur = await page.evaluate(() => window.DUR);
 
   if (a3 === '--stills') {
