@@ -1,0 +1,254 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Diabetes Motion Clips</title>
+<style>
+  :root{
+    --ink:#121212; --mute:#6B6B6B; --bg:#FFFFFF; --soft:#F3F3F1; --soft-d:#DAD9D4;
+    --yellow:#F7C325; --yellow-d:#C99A0E;
+    --coral:#F47C6E; --coral-d:#C9564A;
+    --magenta:#E2245F; --magenta-d:#A8123F;
+    --teal:#1FA6A0; --teal-d:#137571;
+    --blue:#2F7FD1; --blue-d:#1D5A9C;
+    --green:#2FA35A; --green-d:#1E7840;
+    --amber:#F5A623; --amber-d:#C27C0B;
+    --red:#EF5A5A; --red-d:#B93838;
+    --violet:#6A4FC9; --violet-d:#4A3496;
+    --gray:#9A9A96; --gray-d:#6F6F6B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1920px;height:1080px;overflow:hidden;background:var(--bg);
+    font-family:Inter,"Inter Display",system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+  #stage{position:absolute;inset:0;perspective:2200px;overflow:hidden}
+  .cam{position:absolute;inset:0;transform-origin:50% 50%}
+  .abs{position:absolute}
+  .card{position:absolute;transform-style:preserve-3d}
+  .face{position:absolute;inset:0;border-radius:inherit;overflow:hidden}
+  .face::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+    background:radial-gradient(120% 80% at 18% 0%,rgba(255,255,255,.38),rgba(255,255,255,0) 55%)}
+  .floor{position:absolute;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.18),rgba(0,0,0,0))}
+  .title{font-weight:400;letter-spacing:-.025em;line-height:1.04}
+  .title b{font-weight:800}
+  .cap{font-weight:500;color:var(--mute);letter-spacing:-.01em}
+  .chip{display:inline-flex;align-items:center;gap:14px;font-weight:700;border-radius:999px;padding:16px 32px;white-space:nowrap}
+  svg{overflow:visible}
+</style>
+</head>
+<body>
+<div id="stage"><div class="cam" id="cam"></div></div>
+<script src="engine.js"></script>
+<script>
+/* ================= diabetes-specific icons ================= */
+Object.assign(ICONS,{
+  droplet:['M50 10 C50 10 20 46 20 64 a30 30 0 0 0 60 0 C80 46 50 10 50 10 Z','M36 66 a14 14 0 0 0 14 14'],
+  meter:['M18 24 h64 a8 8 0 0 1 8 8 v36 a8 8 0 0 1 -8 8 h-64 a8 8 0 0 1 -8 -8 v-36 a8 8 0 0 1 8 -8 z','M24 40 h30','M24 56 h18','M68 38 l10 10 l-10 10'],
+  syringe:['M26 74 L12 88','M30 70 L58 42 l-8 -8 l-28 28 z','M54 38 l16 -16','M62 30 l10 10','M68 24 l12 -12','M40 52 l8 8'],
+  cells:['M30 34 a16 16 0 1 1 -0.1 0','M70 34 a16 16 0 1 1 -0.1 0','M50 70 a16 16 0 1 1 -0.1 0','M38 44 L62 60','M62 44 L38 60'],
+  door:['M22 14 h44 a4 4 0 0 1 4 4 v64 a4 4 0 0 1 -4 4 h-44 z','M58 50 v6','M78 30 v40','M86 38 L78 30 L70 38'],
+  battery:['M14 34 h56 a6 6 0 0 1 6 6 v20 a6 6 0 0 1 -6 6 h-56 a6 6 0 0 1 -6 -6 v-20 a6 6 0 0 1 6 -6 z','M82 44 v12','M20 44 h14 v12 h-14 z'],
+  blur:['M50 14 a36 36 0 1 1 -0.1 0','M30 38 h40','M26 50 h48','M30 62 h40'],
+  toilet:['M24 18 v30 a26 26 0 0 0 52 0 v-30','M24 48 h52','M38 74 l-4 14 h32 l-4 -14','M34 88 h32'],
+  thirst:['M28 24 h44 l-6 58 a6 6 0 0 1 -6 6 h-20 a6 6 0 0 1 -6 -6 z','M34 44 h32','M50 6 v10','M38 10 v8','M62 10 v8'],
+  scale:['M20 36 h60 l8 50 h-76 z','M50 22 a8 8 0 1 1 -0.1 0','M50 30 v6','M34 58 h32','M34 72 h20'],
+  kid:['M50 22 a14 14 0 1 1 -0.1 0','M30 86 C30 60 42 50 50 50 C58 50 70 60 70 86','M22 62 l-8 18','M78 62 l8 18'],
+  family:['M32 28 a12 12 0 1 1 -0.1 0','M68 28 a12 12 0 1 1 -0.1 0','M14 84 C14 62 22 54 32 54 C42 54 50 62 50 84','M50 84 C50 62 58 54 68 54 C78 54 86 62 86 84','M50 50 a9 9 0 1 1 -0.1 0','M38 90 C38 76 44 70 50 70 C56 70 62 76 62 90'],
+  nerve:['M10 50 h16 c8 0 8 -16 16 -16 s8 32 16 32 s8 -16 16 -16 h16','M86 34 v32','M78 42 l8 -8 l8 8','M78 58 l8 8 l8 -8'],
+  kidney:['M44 16 C66 16 80 32 80 50 C80 70 66 84 50 84 C36 84 28 74 28 62 C28 48 40 46 40 36 C40 26 36 16 44 16 Z','M56 44 C48 50 48 58 54 64'],
+  heart2:['M50 84 C22 64 12 50 12 36 a18 18 0 0 1 36 -6 a18 18 0 0 1 36 6 c0 14 -10 28 -34 48 z','M26 48 h12 l6 -10 l8 20 l6 -10 h16'],
+  brainstroke:['M68 20 C84 24 90 42 82 54 C86 68 74 82 60 78 C50 86 32 82 30 70 C14 66 12 46 24 38 C24 22 44 12 54 22','M54 22 v56','M40 38 h12','M62 54 h12'],
+  water:['M50 10 C50 10 20 48 20 66 a30 30 0 0 0 60 0 C80 48 50 10 50 10 Z','M34 66 a16 16 0 0 0 16 16'],
+  plate:['M50 14 a36 36 0 1 1 -0.1 0','M50 28 a22 22 0 1 1 -0.1 0','M8 30 v16 a8 8 0 0 0 8 8 v36','M92 30 v16 a8 8 0 0 1 -8 8 v36'],
+  nojunk:['M26 34 h48 l-5 48 a6 6 0 0 1 -6 6 h-26 a6 6 0 0 1 -6 -6 z','M34 20 h32 l4 14 h-40 z','M16 14 L84 86'],
+  clock2:['M50 10 a40 40 0 1 1 -0.1 0','M50 26 v24 l16 10','M20 6 L8 18','M80 6 L92 18'],
+  juice:['M30 24 h40 l-5 58 a6 6 0 0 1 -6 6 h-18 a6 6 0 0 1 -6 -6 z','M36 44 h28','M56 24 l10 -16','M66 8 l10 4'],
+  tablet:['M50 30 a20 20 0 1 1 -0.1 0','M34 44 h32','M50 74 a14 14 0 1 1 -0.1 0','M20 30 a10 10 0 1 1 -0.1 0'],
+  phone:['M30 8 h40 a8 8 0 0 1 8 8 v68 a8 8 0 0 1 -8 8 h-40 a8 8 0 0 1 -8 -8 v-68 a8 8 0 0 1 8 -8 z','M42 20 h16','M50 76 v1','M34 38 h32','M34 52 h22'],
+  helping:['M50 30 a14 14 0 1 1 -0.1 0','M24 86 C24 64 36 54 50 54 C64 54 76 64 76 86','M10 40 l10 -10 l10 10','M20 30 v26'],
+  shield:['M50 10 L84 24 v26 c0 20 -16 32 -34 40 C32 82 16 70 16 50 V24 Z','M36 50 l10 10 l20 -22'],
+});
+
+/* ================= scene: blood sugar rising ================= */
+function sugarRise(o){
+  const R=root(),T=o.t;
+  const title=h('div',{class:'title abs',style:{left:0,right:0,top:'110px',textAlign:'center',fontSize:'86px'},html:o.title},R);
+  const CW=1180,CH=460,CX=960,CY=620;
+  const card=slab(R,{x:CX,y:CY,w:CW,h:CH,color:'#FFFFFF',dark:C('soft-d'),radius:56,depth:16});
+  card.face.style.border='3px solid #ECEBE7';
+  const svg=s('svg',{width:CW,height:CH,style:'position:absolute;left:0;top:0'},card.face);
+  const band=s('rect',{x:70,y:CH-170,width:CW-140,height:70,rx:18,fill:'#E9F4EC'},svg);
+  const bl=s('text',{x:90,y:CH-128,'font-size':26,'font-weight':700,fill:C('green'),'font-family':'Inter'},svg);bl.textContent='normal range';
+  const pts=[];for(let i=0;i<=60;i++){const x=70+(CW-140)*i/60;const p=i/60;
+    pts.push([x,CH-120-(p<.25?Math.sin(p*18)*8:(p-.25)*(p-.25)*520)]);}
+  const line=drawable(s('path',{d:smoothPath(pts),fill:'none',stroke:C('red'),'stroke-width':10,'stroke-linecap':'round'},svg));
+  const dot=s('circle',{r:16,fill:'#fff',stroke:C('red'),'stroke-width':8},svg);
+  const drops=[0,1,2].map(i=>{const g=s('g',{},svg);
+    s('path',{d:'M0 -22 C0 -22 -14 -4 -14 5 a14 14 0 0 0 28 0 C14 -4 0 -22 0 -22 Z',fill:C('red'),opacity:.9},g);return g});
+  const lab=h('div',{class:'chip abs',style:{left:'50%',top:'930px',fontSize:'42px',background:C('red'),color:'#fff',boxShadow:extrude(C('red-d'),7,.22)},html:o.label},R);
+  return t=>{reveal(title,eOut(seg(t,0,.5)));slabIn(card,t,.1,{rx0:50,ry0:0});
+    band.style.opacity=seg(t,.5,.9);bl.style.opacity=seg(t,.6,1);
+    const k=eInOut(seg(t,T.rise,T.rise+1.6));draw(line,k);
+    const p=line.getPointAtLength(line._L*k);dot.setAttribute('cx',p.x);dot.setAttribute('cy',p.y);dot.style.opacity=seg(t,T.rise,T.rise+.15);
+    drops.forEach((g,i)=>{const f=((t-T.rise-i*.3)/1.1)%1;const on=t>T.rise+i*.3;
+      g.style.opacity=on?clamp(Math.sin(Math.PI*f)*1.6):0;
+      g.setAttribute('transform',`translate(${p.x+(i-1)*34} ${p.y-60-f*40}) scale(${.8+i*.1})`)});
+    pop(lab,eBack(seg(t,T.label,T.label+.4),1.6),'translateX(-50%)');camPush(t,.005)}}
+
+/* ================= scene: two causes (insulin) ================= */
+function causes(o){
+  const R=root(),T=o.t;
+  const title=h('div',{class:'title abs',style:{left:0,right:0,top:'100px',textAlign:'center',fontSize:'80px'},html:o.title},R);
+  const defs=[['blue','Not enough insulin','the body does not secrete enough','syringe',T.a],
+              ['amber','Insulin resistance','the body cannot use it properly','cells',T.b]];
+  const cards=defs.map(([c,t1,t2,ic,at],i)=>{
+    const sl=slab(R,{x:960+(i?440:-440),y:600,w:720,h:480,color:C(c),dark:C(c+'-d'),radius:52,depth:16});
+    const ink=c==='amber'?'#121212':'#fff';
+    const icn=icon(sl.face,ic,{size:150,color:ink,sw:6,x:285,y:44});
+    h('div',{class:'abs',style:{left:'40px',right:'40px',top:'230px',textAlign:'center',fontSize:'54px',fontWeight:800,letterSpacing:'-.02em',lineHeight:1.1,color:ink},html:t1},sl.face);
+    h('div',{class:'abs',style:{left:'50px',right:'50px',top:'340px',textAlign:'center',fontSize:'32px',fontWeight:500,lineHeight:1.25,color:ink,opacity:.9},html:t2},sl.face);
+    return{sl,icn,at}});
+  const or=h('div',{class:'chip abs',style:{left:'50%',top:'578px',transform:'translate(-50%,0)',fontSize:'38px',background:'#121212',color:'#fff',boxShadow:extrude('#000',6,.25),zIndex:20},html:'or'},R);
+  return t=>{reveal(title,eOut(seg(t,0,.5)));
+    cards.forEach((c,i)=>{slabIn(c.sl,t,c.at,{rx0:20,ry0:i?30:-30});c.icn.draw(eInOut(seg(t,c.at+.2,c.at+.9)));
+      const last=cards.filter(x=>t>=x.at).pop();c.sl.wrap.style.opacity=clamp((t-c.at)/.18)*(last===c?1:.72)});
+    pop(or,eBack(seg(t,T.b-.3,T.b+.1),1.6),'translate(-50%,0)');camPush(t,.005)}}
+
+/* ================= scene: two types side by side ================= */
+function twoTypes(o){
+  const R=root(),T=o.t;
+  const title=h('div',{class:'title abs',style:{left:0,right:0,top:'90px',textAlign:'center',fontSize:'80px'},html:'Two <b>types</b> of diabetes'},R);
+  const defs=[['blue','Type 1','kid',[['Usually younger age',T.t1b],['Lack of insulin secretion',T.t1c]],T.t1],
+              ['violet','Type 2','family',[['Insulin resistance',T.t2b],['Often runs in families',T.t2c]],T.t2]];
+  const cols=defs.map(([c,name,ic,rows,at],i)=>{
+    const sl=slab(R,{x:960+(i?450:-450),y:610,w:760,h:520,color:'#FFFFFF',dark:C('soft-d'),radius:52,depth:14});
+    sl.face.style.border=`4px solid ${C(c)}`;
+    const head=h('div',{class:'abs',style:{left:0,right:0,top:'0px',height:'120px',background:C(c),display:'flex',alignItems:'center',justifyContent:'center',gap:'22px',color:'#fff',fontSize:'56px',fontWeight:800,letterSpacing:'-.02em'},html:name},sl.face);
+    const icn=icon(sl.face,ic,{size:110,color:C(c),sw:6,x:325,y:150});
+    const rs=rows.map(([txt,rat],j)=>({at:rat,el:h('div',{class:'abs',style:{left:'46px',right:'46px',top:(300+j*86)+'px',display:'flex',gap:'20px',alignItems:'center',fontSize:'36px',fontWeight:700,letterSpacing:'-.01em'},
+      html:`<span style="flex:0 0 18px;height:18px;border-radius:50%;background:${C(c)}"></span><span>${txt}</span>`},sl.face)}));
+    return{sl,icn,rs,at,head}});
+  return t=>{reveal(title,eOut(seg(t,0,.5)));
+    cols.forEach((c,i)=>{slabIn(c.sl,t,c.at,{rx0:16,ry0:i?26:-26});c.icn.draw(eInOut(seg(t,c.at+.25,c.at+.9)));
+      c.rs.forEach(r=>reveal(r.el,eOut(seg(t,r.at,r.at+.5)),18));
+      const last=cols.filter(x=>t>=x.at).pop();c.sl.wrap.style.opacity=clamp((t-c.at)/.18)*(last===c?1:.7)});
+    camPush(t,.004)}}
+
+/* ================= scene: body complications map ================= */
+function bodyMap(o){
+  const R=root(),T=o.t;
+  const title=h('div',{class:'title abs',style:{left:0,right:0,top:'70px',textAlign:'center',fontSize:'76px'},html:'A chronic disease &mdash; <b>many complications</b>'},R);
+  const CX=620,CY=640;
+  const svg=s('svg',{width:1920,height:1080,style:'position:absolute;left:0;top:0'},R);
+  const bodyG=s('g',{fill:'none',stroke:'#D7D4CE','stroke-width':10,'stroke-linecap':'round','stroke-linejoin':'round'},svg);
+  s('circle',{cx:CX,cy:CY-250,r:62,fill:'#F3F1ED',stroke:'#D7D4CE','stroke-width':10},bodyG);
+  s('path',{d:`M${CX} ${CY-188} L${CX} ${CY+60}`},bodyG);
+  s('path',{d:`M${CX-130} ${CY-120} C${CX-60} ${CY-160} ${CX+60} ${CY-160} ${CX+130} ${CY-120}`},bodyG);
+  s('path',{d:`M${CX-130} ${CY-120} L${CX-150} ${CY+40}`},bodyG);
+  s('path',{d:`M${CX+130} ${CY-120} L${CX+150} ${CY+40}`},bodyG);
+  s('path',{d:`M${CX} ${CY+60} L${CX-70} ${CY+300}`},bodyG);
+  s('path',{d:`M${CX} ${CY+60} L${CX+70} ${CY+300}`},bodyG);
+  const pins=[['eye',CX-18,CY-262,'blue','Eyes','diabetic retinopathy',T.eye,1160,250],
+    ['heart2',CX+18,CY-70,'red','Heart','heart attacks &middot; strokes',T.heart,1160,470],
+    ['kidney',CX-46,CY+16,'green','Kidneys','kidney damage',T.kidney,1160,690],
+    ['nerve',CX+74,CY+250,'violet','Nerves','numbness &middot; pins and needles',T.nerve,1160,910]];
+  const items=pins.map(([ic,px,py,col,name,sub,at,lx,ly])=>{
+    const g=s('g',{},svg);
+    const ln=drawable(s('path',{d:`M${px} ${py} L${lx-40} ${ly}`,stroke:C(col),'stroke-width':5,fill:'none'},g));
+    const ring=s('circle',{cx:px,cy:py,r:26,fill:'rgba(255,255,255,.9)',stroke:C(col),'stroke-width':8},g);
+    const sl=slab(R,{x:lx+260,y:ly,w:640,h:150,color:C(col),dark:C(col+'-d'),radius:40,depth:12,floor:false});
+    const icn=icon(sl.face,ic,{size:84,color:'#fff',sw:6,x:36,y:33});
+    h('div',{class:'abs',style:{left:'150px',right:'26px',top:'28px',color:'#fff'},
+      html:`<div style="font-size:42px;font-weight:800;letter-spacing:-.02em">${name}</div><div style="font-size:26px;font-weight:500;opacity:.92;margin-top:4px">${sub}</div>`},sl.face);
+    return{g,ln,ring,sl,icn,at,px,py}});
+  return t=>{reveal(title,eOut(seg(t,0,.5)));
+    bodyG.style.opacity=eOut(seg(t,.15,.9));
+    items.forEach(it=>{it.g.style.opacity=seg(t,it.at,it.at+.12);draw(it.ln,eOut(seg(t,it.at,it.at+.4)));
+      const pulse=1+.12*Math.sin((t-it.at)*6)*clamp(1-(t-it.at)/1.2);
+      it.ring.setAttribute('r',26*pulse);
+      slabIn(it.sl,t,it.at+.1,{idle:false,rx0:0,ry0:40});it.icn.draw(eInOut(seg(t,it.at+.3,it.at+.9)))});
+    camPush(t,.004)}}
+
+/* ================= scene: hypo rescue ================= */
+function rescue(o){
+  const R=root(),T=o.t;
+  const warn=slab(R,{x:960,y:220,w:1180,h:170,color:C('red'),dark:C('red-d'),radius:85,depth:14,floor:false});
+  h('div',{class:'abs',style:{inset:'0 60px',display:'flex',alignItems:'center',justifyContent:'center',textAlign:'center',fontSize:(o.warnSize||62)+'px',fontWeight:800,letterSpacing:'-.02em',lineHeight:1.08,color:'#fff'},html:o.warn},warn.face);
+  const items=o.items.map((it,i)=>{
+    const sl=slab(R,{x:360+i*600,y:680,w:500,h:440,color:'#FFFFFF',dark:C('soft-d'),radius:48,depth:14});
+    sl.face.style.border='3px solid #ECEBE7';
+    const icn=icon(sl.face,it.icon,{size:150,color:C(it.color),sw:6,x:175,y:70});
+    h('div',{class:'abs',style:{left:'30px',right:'30px',top:'270px',textAlign:'center',fontSize:'44px',fontWeight:800,letterSpacing:'-.02em',lineHeight:1.12},html:it.label},sl.face);
+    const num=h('div',{class:'abs',style:{left:'28px',top:'24px',width:'62px',height:'62px',borderRadius:'50%',background:C(it.color),color:'#fff',fontSize:'32px',fontWeight:800,display:'flex',alignItems:'center',justifyContent:'center'},html:String(i+1)},sl.face);
+    return{...it,sl,icn,num}});
+  const svg=s('svg',{width:1920,height:1080,style:'position:absolute;left:0;top:0'},R);
+  const arrows=[0,1].map(i=>drawable(s('path',{d:`M${640+i*600} 680 L${790+i*600} 680`,stroke:'#1A1A1A','stroke-width':7,'stroke-linecap':'round',fill:'none'},svg)));
+  return t=>{slabIn(warn,t,0,{idle:false,rx0:50,ry0:0});
+    items.forEach((it,i)=>{slabIn(it.sl,t,it.at);it.icn.draw(eInOut(seg(t,it.at+.2,it.at+.9)));
+      pop(it.num,eBack(seg(t,it.at+.25,it.at+.6),1.8));
+      if(i>0)draw(arrows[i-1],eOut(seg(t,it.at-.3,it.at)))});
+    camPush(t,.005)}}
+
+/* ================= scene: opening title (transparent, over the footage) ================= */
+function openTitle(o){
+  const R=root();
+  const wrap=h('div',{class:'abs',style:{left:'0',right:'0',top:'300px',textAlign:'center'}},R);
+  const kick=h('div',{class:'chip',style:{fontSize:'36px',background:C('blue'),color:'#fff',boxShadow:extrude(C('blue-d'),6,.3),marginBottom:'26px'},html:o.kicker},wrap);
+  const tw=h('div',{style:{overflow:'hidden',display:'block'}},wrap);
+  const big=h('div',{style:{fontSize:'140px',fontWeight:800,letterSpacing:'-.04em',color:'#fff',
+    textShadow:'0 6px 40px rgba(0,0,0,.6), 0 2px 4px rgba(0,0,0,.7)',whiteSpace:'nowrap',lineHeight:1.05},html:o.title},tw);
+  const rule=h('div',{class:'abs',style:{left:'50%',top:'600px',width:'300px',height:'10px',borderRadius:'6px',marginLeft:'-150px',background:C('blue'),boxShadow:extrude(C('blue-d'),4,.3),transformOrigin:'50% 50%'}},R);
+  return t=>{
+    const kk=eBack(seg(t,0,.45),1.8), kt=eOut(seg(t,.3,1.1)), kr=eOut(seg(t,.9,1.5));
+    const out=eInOut(seg(t,o.out,o.out+.5));
+    pop(kick,kk);kick.style.opacity=clamp(kk*2)*(1-out);
+    tw.style.clipPath=`inset(-30% ${(1-kt)*100}% -30% 0)`;
+    big.style.transform=`translateY(${(1-kt)*-18}px)`;tw.style.opacity=1-out;
+    rule.style.transform=`scaleX(${kr})`;rule.style.opacity=kr*(1-out);
+    wrap.style.transform=`translateY(${-out*30}px)`;
+  }}
+
+/* ================= clip table (times = seconds in the source video) ================= */
+const CLIPS={
+  'title':{in:3.3,out:6.48,alpha:true,make:T=>openTitle({kicker:'Health awareness',title:'Let&rsquo;s talk about diabetes',out:99})},
+  'lower-third':{in:7.3,out:12.0,alpha:true,make:T=>lowerThird({name:'Dr Nada Ramadan, PhD',role:'Diabetologist',out:3.9})},
+  'common':{in:12.0,out:17.0,make:T=>term({kicker:'Diabetes is',kTop:'270px',term:'Very common worldwide',termSize:98,termW:1330,color:'blue',termAt:12.98-T,kAt:0,
+    sub:['It is good to know some information about it',15.98-T]})},
+  'what-is':{in:18.1,out:23.9,make:T=>sugarRise({title:'What is <b>diabetes</b>?',label:'An increase in the blood sugar',t:{rise:19.94-T,label:21.04-T}})},
+  'causes':{in:23.9,out:29.8,make:T=>causes({title:'It can happen in <b>two ways</b>',t:{a:24.24-T,b:28.28-T}})},
+  'symptoms':{in:36.2,out:50.26,make:T=>tiles({title:'Symptoms that should make you <b>check your blood sugar</b>',titleSize:'66px',titleAt:0,
+    items:[{label:'Fatigue',icon:'battery',at:37.82-T,color:'amber'},{label:'Blurred vision',icon:'blur',at:38.78-T,color:'amber'},
+      {label:'Passing urine more often',icon:'toilet',at:40.46-T,color:'amber'},{label:'More thirst',icon:'thirst',at:43.1-T,color:'amber'},
+      {label:'Unexplained weight loss',icon:'scale',at:45.38-T,color:'red'}],
+    banner:['Unexplained weight loss is a very significant symptom',47.66-T]})},
+  'two-types':{in:50.26,out:67.5,make:T=>twoTypes({t:{t1:51.86-T,t1b:54.0-T,t1c:56.84-T,t2:59.3-T,t2b:61.78-T,t2c:66.38-T}})},
+  'complications':{in:71.16,out:95.2,make:T=>bodyMap({t:{eye:73.34-T,nerve:78.38-T,kidney:86.52-T,heart:89.46-T}})},
+  'invisible':{in:95.2,out:99.6,make:T=>term({kicker:'That&rsquo;s why diabetes is considered',kTop:'280px',term:'An invisible disability',termSize:104,termW:1240,color:'violet',termAt:97.9-T,kAt:0})},
+  'advice':{in:103.9,out:114.3,make:T=>tiles({title:'Advice for <b>long shifts</b>',titleAt:0,
+    items:[{label:'Keep yourself hydrated',icon:'water',at:104.42-T,color:'teal'},{label:'Don&rsquo;t miss your meals',icon:'plate',at:106.24-T,color:'teal'},
+      {label:'Take your snacks',icon:'clock2',at:108.44-T,color:'teal'},{label:'Make good food choices',icon:'meter',at:110.56-T,color:'teal'},
+      {label:'Avoid junk food',icon:'nojunk',at:112.84-T,color:'red'}]})},
+  'check-glucose':{in:116.86,out:118.7,make:T=>term({kicker:'Feeling tired or unwell?',kTop:'300px',term:'Check your blood glucose',termSize:94,termW:1350,color:'blue',termAt:117.32-T,kAt:0})},
+  'hypo-rescue':{in:119.36,out:132.5,make:T=>rescue({warn:'Hypoglycemia? Don&rsquo;t leave yourself like this',warnSize:52,
+    items:[{label:'Some juice',icon:'juice',color:'amber',at:124.72-T},{label:'Or sugar tablets',icon:'tablet',color:'amber',at:126.04-T},
+      {label:'Then check your glucose again',icon:'meter',color:'teal',at:128.2-T}],t:{}})},
+  'colleague':{in:134.4,out:144.0,make:T=>steps({head:['If a <b>colleague</b> looks unwell',0],headTop:'120px',y:600,span:1420,noDim:true,
+    items:[{label:'Notice',sub:'they look unwell',icon:'helping',color:'blue',at:134.62-T},
+      {label:'Check',sub:'their blood sugar',icon:'meter',color:'teal',at:136.46-T},
+      {label:'No glucometer?',sub:'don&rsquo;t wait',icon:'phone',color:'amber',at:139.5-T},
+      {label:'Give sugar',sub:'a sugary drink or juice',icon:'juice',color:'green',at:141.9-T}]})},
+  'fatal':{in:145.4,out:149.6,make:T=>term({kicker:'Because',kTop:'300px',term:'Hypoglycemia is fatal',termSize:104,termW:1220,color:'red',termAt:145.6-T,kAt:0,
+    chips:[['Prevent it as much as we can',146.98-T,'red']]})},
+  'closing':{in:150.9,out:156.4,make:T=>tiles({title:'Diabetes is <b>not a stigma</b>',titleAt:0,
+    items:[{label:'Support your colleagues living with diabetes',icon:'helping',at:152.48-T,color:'blue'},
+      {label:'Look out for each other',icon:'shield',at:153.84-T,color:'teal'}]})},
+};
+
+const params=new URLSearchParams(location.search);
+const id=params.get('clip');
+if(id&&id!=='__list'){const c=CLIPS[id];
+  if(c.alpha||params.get('alpha')){document.documentElement.style.background='transparent';document.body.style.background='transparent'}
+  const seek=c.make(c.in);window.DUR=c.out-c.in;window.seek=seek;seek(+(params.get('t')||0));}
+window.CLIP_LIST=Object.fromEntries(Object.entries(CLIPS).map(([k,v])=>[k,{in:v.in,out:v.out,alpha:!!v.alpha}]));
+</script>
+</body>
+</html>

@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
 const { spawn, execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const PAGE = 'file://' + path.resolve(__dirname, 'ocd.html');
+const PAGE = 'file://' + path.resolve(__dirname, process.env.PAGE || 'ocd.html');
 
 (async () => {
   const [clip, out, a3, a4] = process.argv.slice(2);

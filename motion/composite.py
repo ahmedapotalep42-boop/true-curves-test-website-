@@ -1,7 +1,7 @@
 """Cut the rendered clips into the source video for review.
 
-usage: python3 composite.py
-  reads work/source.mp4, work/clips.json and out/*.mp4|.mov, writes
+usage: python3 composite.py [dir] [fps]
+  reads <dir>/work/source.mp4, <dir>/work/clips.json and <dir>/out/*.mp4|.mov, writes
   out/preview.mp4 (graphics) and out/preview_subtitled.mp4 (+ out/subtitles.ass)
 
 Every cut between the footage and a graphic is a lens-blur transition: the frame
@@ -9,23 +9,30 @@ defocuses toward the cut, the two shots cross-dissolve at peak blur, then refocu
 """
 import glob
 import json
+import os
 import subprocess
+import sys
 
-clips = json.load(open('work/clips.json'))
+BASE = (sys.argv[1].rstrip('/') + '/') if len(sys.argv) > 1 else ''
+# seconds of dead air trimmed off the head of the review preview
+TRIM = float(sys.argv[2]) if len(sys.argv) > 2 else 0
+clips = json.load(open(BASE + 'work/clips.json'))
 W, H = 1024, 576
-PUNCH = (4.36, 5.98)  # hook punch-in on "Well, you're probably not."
+# optional hook punch-in, per video
+PUNCH = (4.36, 5.98) if not BASE else None
 XF = .12  # half-length of the cross-dissolve (s)
 # (distance from cut, blur sigma): sigma used while |t - cut| is below the distance
 BLUR = [(.035, 18), (.07, 13), (.11, 8.5), (.16, 5), (.22, 2.2)]
 
 
 def clip_file(name):
-    return glob.glob(f'out/*_{name}.mp4') + glob.glob(f'out/*_{name}.mov')
+    return glob.glob(f'{BASE}out/*_{name}.mp4') + glob.glob(f'{BASE}out/*_{name}.mov')
 
 
-args = ['ffmpeg', '-loglevel', 'error', '-y', '-i', 'work/source.mp4']
-graph = [f"[0:v]split[a][b];[b]scale=iw*1.15:ih*1.15,crop={W}:{H}:(iw-{W})/2:(ih-{H})*0.3[z];"
-         f"[a][z]overlay=enable='between(t,{PUNCH[0]},{PUNCH[1]})'[v0]"]
+args = ['ffmpeg', '-loglevel', 'error', '-y', '-i', BASE + 'work/source.mp4']
+graph = ([f"[0:v]split[a][b];[b]scale=iw*1.15:ih*1.15,crop={W}:{H}:(iw-{W})/2:(ih-{H})*0.3[z];"
+          f"[a][z]overlay=enable='between(t,{PUNCH[0]},{PUNCH[1]})'[v0]"] if PUNCH
+         else ["[0:v]null[v0]"])
 prev, n, cuts = '[v0]', 0, set()
 for name, c in clips.items():
     n += 1
@@ -54,6 +61,11 @@ for i, (dist, sigma) in enumerate(BLUR):
     prev = f'[b{i}]'
 
 enc = ['-c:v', 'libx264', '-crf', '18', '-preset', 'medium', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-c:a', 'copy']
-subprocess.run(args + ['-filter_complex', ';'.join(graph), '-map', prev, '-map', '0:a', *enc, 'out/preview.mp4'], check=True)
-subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-i', 'out/preview.mp4', '-vf',
-                'ass=out/subtitles.ass:fontsdir=/usr/share/fonts/opentype/inter', *enc, 'out/preview_subtitled.mp4'], check=True)
+subprocess.run(args + ['-filter_complex', ';'.join(graph), '-map', prev, '-map', '0:a', *enc, BASE + 'out/preview.mp4'], check=True)
+sub = BASE + ('out/_subtitled_full.mp4' if TRIM else 'out/preview_subtitled.mp4')
+subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-i', BASE + 'out/preview.mp4', '-vf',
+                f'ass={BASE}out/subtitles.ass:fontsdir=/usr/share/fonts/opentype/inter', *enc, sub], check=True)
+if TRIM:  # drop the dead air at the head, after the subtitles are burned in
+    subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-ss', str(TRIM), '-i', sub,
+                    '-c', 'copy', '-movflags', '+faststart', BASE + 'out/preview_subtitled.mp4'], check=True)
+    os.remove(sub)

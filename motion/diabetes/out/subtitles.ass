@@ -1,0 +1,35 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1024
+PlayResY: 576
+WrapStyle: 2
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Face,Inter SemiBold,28,&H00FFFFFF,&H00FFFFFF,&H00000000,&H8C000000,0,0,0,0,100,100,0,0,1,0,1.4,2,60,60,40,1
+Style: Graphic,Inter SemiBold,19,&H00303030,&H00303030,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,0,0,2,60,60,10,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:06.48,0:00:07.78,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}Hi, {\alpha&HFF&\blur3\t(619,779,\alpha&H00&\blur0)}I'm {\alpha&HFF&\blur3\t(799,959,\alpha&H00&\blur0)}Nada.
+Dialogue: 0,0:00:17.02,0:00:17.59,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}it.
+Dialogue: 0,0:00:17.80,0:00:18.12,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}What {\alpha&HFF&\blur3\t(160,320,\alpha&H00&\blur0)}is
+Dialogue: 0,0:00:29.88,0:00:31.28,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}There {\alpha&HFF&\blur3\t(160,320,\alpha&H00&\blur0)}are {\alpha&HFF&\blur3\t(339,499,\alpha&H00&\blur0)}some {\alpha&HFF&\blur3\t(600,760,\alpha&H00&\blur0)}symptoms {\alpha&HFF&\blur3\t(1140,1300,\alpha&H00&\blur0)}that
+Dialogue: 0,0:00:31.28,0:00:32.25,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}if {\alpha&HFF&\blur3\t(160,320,\alpha&H00&\blur0)}you {\alpha&HFF&\blur3\t(320,480,\alpha&H00&\blur0)}have,
+Dialogue: 0,0:00:32.36,0:00:33.30,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}you {\alpha&HFF&\blur3\t(140,300,\alpha&H00&\blur0)}have {\alpha&HFF&\blur3\t(380,540,\alpha&H00&\blur0)}to {\alpha&HFF&\blur3\t(539,699,\alpha&H00&\blur0)}check {\alpha&HFF&\blur3\t(780,940,\alpha&H00&\blur0)}your
+Dialogue: 0,0:00:33.30,0:00:34.64,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}blood {\alpha&HFF&\blur3\t(260,420,\alpha&H00&\blur0)}sugar {\alpha&HFF&\blur3\t(620,780,\alpha&H00&\blur0)}to {\alpha&HFF&\blur3\t(720,880,\alpha&H00&\blur0)}exclude {\alpha&HFF&\blur3\t(1220,1380,\alpha&H00&\blur0)}if
+Dialogue: 0,0:00:34.64,0:00:36.03,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}you {\alpha&HFF&\blur3\t(140,300,\alpha&H00&\blur0)}have {\alpha&HFF&\blur3\t(339,499,\alpha&H00&\blur0)}diabetes.
+Dialogue: 0,0:01:07.50,0:01:09.42,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}Diabetes {\alpha&HFF&\blur3\t(579,739,\alpha&H00&\blur0)}is {\alpha&HFF&\blur3\t(739,899,\alpha&H00&\blur0)}a {\alpha&HFF&\blur3\t(840,1000,\alpha&H00&\blur0)}chronic {\alpha&HFF&\blur3\t(1239,1399,\alpha&H00&\blur0)}disease,
+Dialogue: 0,0:01:09.42,0:01:10.70,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}that's {\alpha&HFF&\blur3\t(299,459,\alpha&H00&\blur0)}why {\alpha&HFF&\blur3\t(500,660,\alpha&H00&\blur0)}it's {\alpha&HFF&\blur3\t(679,839,\alpha&H00&\blur0)}associated
+Dialogue: 0,0:01:10.70,0:01:11.16,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}with {\alpha&HFF&\blur3\t(200,360,\alpha&H00&\blur0)}many
+Dialogue: 0,0:01:39.68,0:01:41.12,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}some {\alpha&HFF&\blur3\t(199,359,\alpha&H00&\blur0)}advices {\alpha&HFF&\blur3\t(799,959,\alpha&H00&\blur0)}that {\alpha&HFF&\blur3\t(979,1139,\alpha&H00&\blur0)}I {\alpha&HFF&\blur3\t(1099,1259,\alpha&H00&\blur0)}usually
+Dialogue: 0,0:01:41.12,0:01:42.28,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}give {\alpha&HFF&\blur3\t(219,379,\alpha&H00&\blur0)}to {\alpha&HFF&\blur3\t(359,519,\alpha&H00&\blur0)}my {\alpha&HFF&\blur3\t(579,739,\alpha&H00&\blur0)}patients,
+Dialogue: 0,0:01:42.28,0:01:44.03,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}especially {\alpha&HFF&\blur3\t(420,580,\alpha&H00&\blur0)}who {\alpha&HFF&\blur3\t(579,739,\alpha&H00&\blur0)}do {\alpha&HFF&\blur3\t(739,899,\alpha&H00&\blur0)}long {\alpha&HFF&\blur3\t(1019,1179,\alpha&H00&\blur0)}shifts.
+Dialogue: 0,0:01:54.50,0:01:55.48,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}And {\alpha&HFF&\blur3\t(219,379,\alpha&H00&\blur0)}if {\alpha&HFF&\blur3\t(379,539,\alpha&H00&\blur0)}you {\alpha&HFF&\blur3\t(459,619,\alpha&H00&\blur0)}are {\alpha&HFF&\blur3\t(599,759,\alpha&H00&\blur0)}feeling
+Dialogue: 0,0:01:55.48,0:01:56.86,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}tired {\alpha&HFF&\blur3\t(500,660,\alpha&H00&\blur0)}or {\alpha&HFF&\blur3\t(700,860,\alpha&H00&\blur0)}unwell,
+Dialogue: 0,0:01:58.76,0:01:59.36,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}if {\alpha&HFF&\blur3\t(140,300,\alpha&H00&\blur0)}you {\alpha&HFF&\blur3\t(259,419,\alpha&H00&\blur0)}have
+Dialogue: 0,0:02:12.64,0:02:13.48,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}for {\alpha&HFF&\blur3\t(200,360,\alpha&H00&\blur0)}everyone,
+Dialogue: 0,0:02:13.48,0:02:14.40,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}if {\alpha&HFF&\blur3\t(100,260,\alpha&H00&\blur0)}you {\alpha&HFF&\blur3\t(219,379,\alpha&H00&\blur0)}notice {\alpha&HFF&\blur3\t(600,760,\alpha&H00&\blur0)}one {\alpha&HFF&\blur3\t(760,920,\alpha&H00&\blur0)}of
+Dialogue: 0,0:02:24.18,0:02:25.60,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}because {\alpha&HFF&\blur3\t(299,459,\alpha&H00&\blur0)}hypoglycemia {\alpha&HFF&\blur3\t(1199,1359,\alpha&H00&\blur0)}is
+Dialogue: 0,0:02:30.46,0:02:31.00,Face,,0,0,0,,{\fad(0,120)}{\alpha&HFF&\blur3\t(0,160,\alpha&H00&\blur0)}Diabetes
