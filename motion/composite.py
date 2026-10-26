@@ -66,6 +66,8 @@ sub = BASE + ('out/_subtitled_full.mp4' if TRIM else 'out/preview_subtitled.mp4'
 subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-i', BASE + 'out/preview.mp4', '-vf',
                 f'ass={BASE}out/subtitles.ass:fontsdir=/usr/share/fonts/opentype/inter', *enc, sub], check=True)
 if TRIM:  # drop the dead air at the head, after the subtitles are burned in
+    # re-encode rather than stream-copy: a copy would snap back to the nearest keyframe
     subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-ss', str(TRIM), '-i', sub,
-                    '-c', 'copy', '-movflags', '+faststart', BASE + 'out/preview_subtitled.mp4'], check=True)
+                    *enc[:-2], '-c:a', 'aac', '-b:a', '192k',  # enc[:-2] drops the "-c:a copy" pair
+                    BASE + 'out/preview_subtitled.mp4'], check=True)
     os.remove(sub)
