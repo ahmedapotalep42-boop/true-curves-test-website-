@@ -188,6 +188,33 @@ function rescue(o){
       if(i>0)draw(arrows[i-1],eOut(seg(t,it.at-.3,it.at)))});
     camPush(t,.005)}}
 
+/* ================= scene: side panel (transparent, sits beside the speaker) ================= */
+function sidePanel(o){
+  const R=root();
+  const W=o.w||560,H=o.h||560,X=o.x||1548,Y=o.y||470;
+  const wrap=h('div',{class:'abs',style:{left:X-W/2+'px',top:Y-H/2+'px',width:W+'px',height:H+'px'}},R);
+  const card=h('div',{class:'abs',style:{inset:0,borderRadius:'44px',overflow:'hidden',background:'#fff',
+    boxShadow:'0 0 0 10px rgba(255,255,255,.96), 0 30px 70px -14px rgba(0,0,0,.55), 0 10px 24px -8px rgba(0,0,0,.4)'}},wrap);
+  const img=h('img',{src:o.img,class:'abs',style:{inset:0,width:'100%',height:'100%',objectFit:'cover',transformOrigin:'50% 50%'}},card);
+  const grad=h('div',{class:'abs',style:{left:0,right:0,bottom:0,height:'46%',
+    background:'linear-gradient(to top,rgba(0,0,0,.82),rgba(0,0,0,0))'}},card);
+  const cap=h('div',{class:'abs',style:{left:'34px',right:'34px',bottom:'34px',color:'#fff',fontSize:(o.capSize||46)+'px',
+    fontWeight:800,letterSpacing:'-.02em',lineHeight:1.1,textShadow:'0 2px 10px rgba(0,0,0,.5)'},html:o.cap},card);
+  const bar=h('div',{class:'abs',style:{left:'34px',bottom:'0px',width:'86px',height:'10px',borderRadius:'6px',
+    background:C(o.color||'blue'),transformOrigin:'0 50%'}},card);
+  const tag=o.tag?h('div',{class:'chip abs',style:{left:'26px',top:'26px',fontSize:'28px',background:C(o.color||'blue'),
+    color:'#fff',boxShadow:extrude(C((o.color||'blue')+'-d'),5,.3)},html:o.tag},card):null;
+  return t=>{
+    const kin=spring(seg(t,0,.75)), out=eInOut(seg(t,o.out,o.out+.5));
+    const slide=lerp(W*.9,0,kin)+out*W*.9;
+    wrap.style.transform=`perspective(1600px) translateX(${slide}px) rotateY(${lerp(-26,-5,kin)+out*18}deg) scale(${lerp(.86,1,kin)})`;
+    wrap.style.opacity=clamp(t/.14)*(1-out);
+    img.style.transform=`scale(${lerp(1.16,1.03,eOut(seg(t,0,2.6)))+t*.004})`;
+    const kc=eOut(seg(t,.35,.95));cap.style.opacity=kc;cap.style.transform=`translateY(${(1-kc)*18}px)`;
+    grad.style.opacity=kc;bar.style.transform=`scaleX(${eOut(seg(t,.5,1.1))})`;
+    if(tag)pop(tag,eBack(seg(t,.25,.6),1.7));
+  }}
+
 /* ================= scene: opening title (transparent, over the footage) ================= */
 function openTitle(o){
   const R=root();
@@ -211,36 +238,38 @@ function openTitle(o){
 const CLIPS={
   'title':{in:3.3,out:6.48,alpha:true,make:T=>openTitle({kicker:'Health awareness',title:'Let&rsquo;s talk about diabetes',out:99})},
   'lower-third':{in:7.3,out:12.0,alpha:true,make:T=>lowerThird({name:'Dr Nada Ramadan, PhD',role:'Diabetologist',out:3.9})},
-  'common':{in:12.0,out:17.0,make:T=>term({kicker:'Diabetes is',kTop:'270px',term:'Very common worldwide',termSize:98,termW:1330,color:'blue',termAt:12.98-T,kAt:0,
-    sub:['It is good to know some information about it',15.98-T]})},
+  // side panels: she stays on screen, the visual sits in the clear third beside her
+  'sp-common':{in:12.9,out:17.3,alpha:true,make:T=>sidePanel({img:'assets/worldwide.jpg',tag:'Worldwide',color:'blue',
+    cap:'A very common disease',out:3.5})},
   'what-is':{in:18.1,out:23.9,make:T=>sugarRise({title:'What is <b>diabetes</b>?',label:'An increase in the blood sugar',t:{rise:19.94-T,label:21.04-T}})},
-  'causes':{in:23.9,out:29.8,make:T=>causes({title:'It can happen in <b>two ways</b>',t:{a:24.24-T,b:28.28-T}})},
-  'symptoms':{in:36.2,out:50.26,make:T=>tiles({title:'Symptoms that should make you <b>check your blood sugar</b>',titleSize:'66px',titleAt:0,
-    items:[{label:'Fatigue',icon:'battery',at:37.82-T,color:'amber'},{label:'Blurred vision',icon:'blur',at:38.78-T,color:'amber'},
-      {label:'Passing urine more often',icon:'toilet',at:40.46-T,color:'amber'},{label:'More thirst',icon:'thirst',at:43.1-T,color:'amber'},
-      {label:'Unexplained weight loss',icon:'scale',at:45.38-T,color:'red'}],
-    banner:['Unexplained weight loss is a very significant symptom',47.66-T]})},
-  'two-types':{in:50.26,out:67.5,make:T=>twoTypes({t:{t1:51.86-T,t1b:54.0-T,t1c:56.84-T,t2:59.3-T,t2b:61.78-T,t2c:66.38-T}})},
-  'complications':{in:71.16,out:95.2,make:T=>bodyMap({t:{eye:73.34-T,nerve:78.38-T,kidney:86.52-T,heart:89.46-T}})},
-  'invisible':{in:95.2,out:99.6,make:T=>term({kicker:'That&rsquo;s why diabetes is considered',kTop:'280px',term:'An invisible disability',termSize:104,termW:1240,color:'violet',termAt:97.9-T,kAt:0})},
-  'advice':{in:103.9,out:114.3,make:T=>tiles({title:'Advice for <b>long shifts</b>',titleAt:0,
-    items:[{label:'Keep yourself hydrated',icon:'water',at:104.42-T,color:'teal'},{label:'Don&rsquo;t miss your meals',icon:'plate',at:106.24-T,color:'teal'},
-      {label:'Take your snacks',icon:'clock2',at:108.44-T,color:'teal'},{label:'Make good food choices',icon:'meter',at:110.56-T,color:'teal'},
-      {label:'Avoid junk food',icon:'nojunk',at:112.84-T,color:'red'}]})},
-  'check-glucose':{in:116.86,out:118.7,make:T=>term({kicker:'Feeling tired or unwell?',kTop:'300px',term:'Check your blood glucose',termSize:94,termW:1350,color:'blue',termAt:117.32-T,kAt:0})},
-  'hypo-rescue':{in:119.36,out:132.5,make:T=>rescue({warn:'Hypoglycemia? Don&rsquo;t leave yourself like this',warnSize:52,
-    items:[{label:'Some juice',icon:'juice',color:'amber',at:124.72-T},{label:'Or sugar tablets',icon:'tablet',color:'amber',at:126.04-T},
-      {label:'Then check your glucose again',icon:'meter',color:'teal',at:128.2-T}],t:{}})},
-  'colleague':{in:134.4,out:144.0,make:T=>steps({head:['If a <b>colleague</b> looks unwell',0],headTop:'120px',y:600,span:1420,noDim:true,
-    items:[{label:'Notice',sub:'they look unwell',icon:'helping',color:'blue',at:134.62-T},
-      {label:'Check',sub:'their blood sugar',icon:'meter',color:'teal',at:136.46-T},
-      {label:'No glucometer?',sub:'don&rsquo;t wait',icon:'phone',color:'amber',at:139.5-T},
-      {label:'Give sugar',sub:'a sugary drink or juice',icon:'juice',color:'green',at:141.9-T}]})},
-  'fatal':{in:145.4,out:149.6,make:T=>term({kicker:'Because',kTop:'300px',term:'Hypoglycemia is fatal',termSize:104,termW:1220,color:'red',termAt:145.6-T,kAt:0,
-    chips:[['Prevent it as much as we can',146.98-T,'red']]})},
-  'closing':{in:150.9,out:156.4,make:T=>tiles({title:'Diabetes is <b>not a stigma</b>',titleAt:0,
-    items:[{label:'Support your colleagues living with diabetes',icon:'helping',at:152.48-T,color:'blue'},
-      {label:'Look out for each other',icon:'shield',at:153.84-T,color:'teal'}]})},
+  'sp-insulin':{in:24.1,out:29.7,alpha:true,make:T=>sidePanel({img:'assets/insulin.jpg',tag:'Insulin',color:'blue',capSize:42,
+    cap:'Not enough insulin &mdash;<br>or the body resists it',out:4.6})},
+  'sp-symptoms1':{in:37.6,out:42.6,alpha:true,make:T=>sidePanel({img:'assets/fatigue.jpg',tag:'Symptoms',color:'amber',
+    cap:'Fatigue &middot; blurred vision',out:4.1})},
+  'sp-symptoms2':{in:43.0,out:49.8,alpha:true,make:T=>sidePanel({img:'assets/thirst.jpg',tag:'Symptoms',color:'amber',capSize:40,
+    cap:'More thirst &middot; passing urine<br>Unexplained weight loss',out:5.8})},
+  'two-types':{in:51.0,out:67.5,make:T=>twoTypes({t:{t1:51.86-T,t1b:54.0-T,t1c:56.84-T,t2:59.3-T,t2b:61.78-T,t2c:66.38-T}})},
+  'complications':{in:71.16,out:94.0,make:T=>bodyMap({t:{eye:73.34-T,nerve:78.38-T,kidney:86.52-T,heart:89.46-T}})},
+  'sp-invisible':{in:96.6,out:99.6,alpha:true,make:T=>sidePanel({img:'assets/invisible.jpg',tag:'Remember',color:'violet',capSize:42,
+    cap:'An invisible disability',out:2.2})},
+  'sp-hydrate':{in:104.2,out:106.2,alpha:true,make:T=>sidePanel({img:'assets/water.jpg',tag:'On long shifts',color:'teal',
+    cap:'Keep yourself hydrated',out:1.3})},
+  'sp-meals':{in:106.4,out:110.2,alpha:true,make:T=>sidePanel({img:'assets/meal.jpg',tag:'On long shifts',color:'teal',capSize:42,
+    cap:'Don&rsquo;t miss meals &middot;<br>take your snacks',out:2.9})},
+  'sp-junk':{in:112.5,out:116.0,alpha:true,make:T=>sidePanel({img:'assets/junk.jpg',tag:'Avoid',color:'red',
+    cap:'Junk food',out:2.6})},
+  'sp-check':{in:116.9,out:119.2,alpha:true,make:T=>sidePanel({img:'assets/glucometer.jpg',tag:'Feeling unwell?',color:'blue',capSize:42,
+    cap:'Check your blood glucose',out:1.6})},
+  'sp-hypo':{in:123.6,out:128.0,alpha:true,make:T=>sidePanel({img:'assets/juice.jpg',tag:'Hypoglycemia',color:'amber',capSize:42,
+    cap:'Juice or sugar tablets &mdash;<br>then check again',out:3.5})},
+  'sp-colleague':{in:134.5,out:139.4,alpha:true,make:T=>sidePanel({img:'assets/colleagues.jpg',tag:'At work',color:'blue',capSize:42,
+    cap:'A colleague looks unwell?<br>Check their blood sugar',out:4.0})},
+  'sp-sugar':{in:141.5,out:144.4,alpha:true,make:T=>sidePanel({img:'assets/juice.jpg',tag:'No glucometer?',color:'green',capSize:42,
+    cap:'Give a sugary drink',out:2.0})},
+  'sp-fatal':{in:145.4,out:149.4,alpha:true,make:T=>sidePanel({img:'assets/warning.jpg',tag:'Why it matters',color:'red',capSize:42,
+    cap:'Hypoglycemia is fatal &mdash;<br>prevent it',out:3.1})},
+  'sp-closing':{in:150.9,out:156.3,alpha:true,make:T=>sidePanel({img:'assets/support.jpg',tag:'Finally',color:'teal',capSize:40,
+    cap:'Not a stigma &mdash; support<br>colleagues living with diabetes',out:4.5})},
 };
 
 const params=new URLSearchParams(location.search);
