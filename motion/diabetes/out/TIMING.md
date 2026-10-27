@@ -33,12 +33,12 @@ Clips are 1920×1080 at 30 fps. `.mp4` = full-screen on solid white. `.mov` = Pr
 
 ## Stock images
 
-All photos are Freepik free-licence stock, licensed through Magnific. No AI-generated images, no credits spent.
+Photos are Freepik stock licensed through Magnific; all free-licence except the insulin panel's 3D render, which is premium. No AI-generated images.
 
 | Panel | Image |
 |---|---|
 | `sp-common` | Stethoscope over the globe |
-| `sp-insulin` | Diabetic patient using an insulin pen |
+| `sp-insulin` | Cartoon glucometer and blood sugar monitoring, 3D render (replaces the needle photo at the client's request) |
 | `sp-symptoms1` | Exhausted overworked woman at the office |
 | `sp-symptoms2` | Businesswoman having a glass of water at work |
 | `sp-invisible` | Lifestyle of people in the office |
