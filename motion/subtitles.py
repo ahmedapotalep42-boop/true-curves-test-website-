@@ -8,10 +8,11 @@ import json
 import sys
 
 words_path, clips_path, out_base = sys.argv[1:4]
-SKIP = {'Got', 'it.', 'Yeah', '...'}
 words = [w for w in json.load(open(words_path))['words']
          if w.get('type') == 'word' and w['end'] > w['start']]
-clips = list(json.load(open(clips_path)).values())
+# only full-screen clips hide the captions; transparent overlays leave the speaker
+# (and her subtitles) on screen
+clips = [c for c in json.load(open(clips_path)).values() if not c.get('alpha')]
 
 MAX_WORDS, MAX_CHARS, GAP = 5, 30, 0.45
 
