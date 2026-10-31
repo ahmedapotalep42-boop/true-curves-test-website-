@@ -54,6 +54,6 @@ Photos are Freepik stock licensed through Magnific; all free-licence except the 
 
 **Transitions:** every cut between the footage and a full-screen graphic is a lens-blur transition (defocus, 0.24s cross-dissolve at peak blur, refocus). Side panels slide in and out and leave the footage sharp.
 
-**Subtitles:** `subtitles.ass` keeps the word-by-word animation, `subtitles.srt` is plain text. Both are in original-file time and are hidden while a full-screen graphic is on screen.
+**Subtitles:** `subtitles.ass` keeps the word-by-word animation, `subtitles.srt` is plain text. Both are in original-file time and run the whole way through: white text over the footage, dark text tucked at the bottom while a full-screen graphic is up. 100% of the spoken words are captioned.
 
 **Wording:** every on-screen line comes from Dr Ramadan’s own words. No figures or statistics were added.

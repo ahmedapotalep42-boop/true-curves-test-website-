@@ -35,261 +35,381 @@ some information about it.
 What is
 
 10
+00:00:18,120 --> 00:00:20,320
+diabetes? Diabetes means
+
+11
+00:00:20,320 --> 00:00:21,990
+increase in the blood sugar,
+
+12
+00:00:22,120 --> 00:00:23,340
+and it could be due
+
+13
+00:00:23,340 --> 00:00:23,930
+to
+
+14
 00:00:24,240 --> 00:00:25,240
 problem in the insulin
 
-11
+15
 00:00:25,240 --> 00:00:26,670
 secretion from the body,
 
-12
+16
 00:00:27,100 --> 00:00:28,000
 or it could be due
 
-13
+17
 00:00:28,000 --> 00:00:29,880
 to insulin resistance.
 
-14
+18
 00:00:29,880 --> 00:00:31,280
 There are some symptoms that
 
-15
+19
 00:00:31,280 --> 00:00:32,250
 if you have,
 
-16
+20
 00:00:32,360 --> 00:00:33,300
 you have to check your
 
-17
+21
 00:00:33,300 --> 00:00:34,640
 blood sugar to exclude if
 
-18
+22
 00:00:34,640 --> 00:00:36,030
 you have diabetes.
 
-19
+23
 00:00:36,200 --> 00:00:37,820
 These symptoms include
 
-20
+24
 00:00:37,820 --> 00:00:38,550
 fatigue,
 
-21
+25
 00:00:38,780 --> 00:00:40,010
 blurring of vision,
 
-22
+26
 00:00:40,200 --> 00:00:41,920
 and increase the frequency of
 
-23
+27
 00:00:41,920 --> 00:00:42,850
 urination,
 
-24
+28
 00:00:43,100 --> 00:00:45,070
 increase the sense of thirst.
 
-25
+29
 00:00:45,380 --> 00:00:47,570
 Unexplained weight loss also
 
-26
+30
 00:00:47,660 --> 00:00:49,940
 is a very significant symptom.
 
-27
+31
 00:00:49,940 --> 00:00:50,980
 There are two types of
 
-28
+32
 00:00:50,980 --> 00:00:51,860
 diabetes,
 
-29
+33
+00:00:51,860 --> 00:00:52,660
+type one,
+
+34
+00:00:52,660 --> 00:00:54,000
+which is usually common in
+
+35
+00:00:54,000 --> 00:00:55,070
+younger age,
+
+36
+00:00:55,240 --> 00:00:56,840
+and it happens because of
+
+37
+00:00:56,840 --> 00:00:58,650
+lack of insulin secretion,
+
+38
+00:00:59,060 --> 00:01:00,440
+and type two diabetes,
+
+39
+00:01:00,440 --> 00:01:02,610
+which is because of insulin
+
+40
+00:01:02,820 --> 00:01:04,920
+resistance and it's common as
+
+41
+00:01:04,920 --> 00:01:06,380
+like a familial disease that
+
+42
+00:01:06,380 --> 00:01:07,500
+runs in families.
+
+43
 00:01:07,500 --> 00:01:09,420
 Diabetes is a chronic disease,
 
-30
+44
 00:01:09,420 --> 00:01:10,700
 that's why it's associated
 
-31
+45
 00:01:10,700 --> 00:01:11,160
 with many
 
-32
+46
+00:01:11,160 --> 00:01:12,310
+complications.
+
+47
+00:01:12,420 --> 00:01:13,740
+It may affect the eye,
+
+48
+00:01:13,740 --> 00:01:14,800
+causing something called
+
+49
+00:01:14,800 --> 00:01:16,310
+diabetic retinopathy,
+
+50
+00:01:16,480 --> 00:01:18,180
+and it also may affect
+
+51
+00:01:18,180 --> 00:01:19,920
+the nerves in the extremities,
+
+52
+00:01:19,920 --> 00:01:21,160
+like the legs and the
+
+53
+00:01:21,160 --> 00:01:23,460
+hands, causing numbness and
+
+54
+00:01:23,460 --> 00:01:25,110
+pin-needle sensation.
+
+55
+00:01:25,180 --> 00:01:26,520
+It could also affect the
+
+56
+00:01:26,520 --> 00:01:27,410
+kidneys,
+
+57
+00:01:27,680 --> 00:01:29,280
+and also it could affect
+
+58
+00:01:29,280 --> 00:01:29,820
+the heart,
+
+59
+00:01:29,820 --> 00:01:31,160
+making this patient more
+
+60
+00:01:31,160 --> 00:01:33,280
+liable for heart attacks and
+
+61
+00:01:33,280 --> 00:01:34,240
+more liable for
+
+62
 00:01:34,240 --> 00:01:35,110
 strokes.
 
-33
+63
 00:01:35,380 --> 00:01:36,840
 That's why diabetes is
 
-34
+64
 00:01:36,840 --> 00:01:38,520
 considered as an invisible
 
-35
+65
 00:01:38,520 --> 00:01:39,880
 disability. There are some
 
-36
+66
 00:01:39,880 --> 00:01:41,340
 advices that I usually give
 
-37
+67
 00:01:41,340 --> 00:01:42,280
 to my patients,
 
-38
+68
 00:01:42,280 --> 00:01:44,030
 especially who do long shifts.
 
-39
+69
 00:01:44,100 --> 00:01:46,110
 Please keep yourself hydrated.
 
-40
+70
 00:01:46,240 --> 00:01:47,540
 Don't miss your meals.
 
-41
+71
 00:01:47,540 --> 00:01:48,840
 Take your meals- and take
 
-42
+72
 00:01:48,840 --> 00:01:49,790
 your snacks.
 
-43
+73
 00:01:49,940 --> 00:01:51,580
 And please do have good
 
-44
+74
 00:01:51,580 --> 00:01:52,840
 choices for the food and
 
-45
+75
 00:01:52,840 --> 00:01:54,330
 avoid any junk food.
 
-46
+76
 00:01:54,500 --> 00:01:55,480
 And if you are feeling
 
-47
+77
 00:01:55,480 --> 00:01:56,860
 tired or unwell,
 
-48
+78
 00:01:56,860 --> 00:01:57,960
 please check your blood
 
-49
+79
 00:01:57,960 --> 00:01:59,360
 glucose. And if you have
 
-50
+80
 00:01:59,360 --> 00:02:00,650
 hypoglycemia,
 
-51
+81
 00:02:01,020 --> 00:02:02,140
 don't leave yourself like
 
-52
+82
 00:02:02,140 --> 00:02:03,590
 this. Try to take,
 
-53
+83
 00:02:03,780 --> 00:02:04,310
 um,
 
-54
+84
 00:02:04,460 --> 00:02:05,780
 some juice or some,
 
-55
+85
 00:02:05,780 --> 00:02:06,940
 like, sugar tablets or
 
-56
+86
 00:02:06,940 --> 00:02:07,710
 whatever,
 
-57
+87
 00:02:07,860 --> 00:02:09,140
 and check your blood glucose
 
-58
+88
 00:02:09,140 --> 00:02:10,640
 and make sure that it's
 
-59
+89
 00:02:10,640 --> 00:02:12,480
 not hypoglycemic anymore.
 
-60
+90
 00:02:12,480 --> 00:02:13,479
 And for everyone,
 
-61
+91
 00:02:13,479 --> 00:02:14,400
 if you notice one of
 
-62
+92
 00:02:14,400 --> 00:02:15,560
 your colleagues who looks
 
-63
+93
 00:02:15,560 --> 00:02:17,400
 unwell, please check his blood
 
-64
+94
 00:02:17,400 --> 00:02:18,740
 sugar as soon as possible.
 
-65
+95
 00:02:18,740 --> 00:02:20,240
 And if there's no glucometer
 
-66
+96
 00:02:20,240 --> 00:02:21,900
 around, then give him a
 
-67
+97
 00:02:21,900 --> 00:02:24,050
 sugary drink or some juice
 
-68
+98
 00:02:24,180 --> 00:02:26,310
 because hypoglycemia is fatal,
 
-69
+99
 00:02:26,380 --> 00:02:27,340
 so we have to prevent
 
-70
+100
 00:02:27,340 --> 00:02:29,690
 hypoglycemia as we can.
 
-71
+101
 00:02:30,460 --> 00:02:32,100
 Diabetes is not a stigma,
 
-72
+102
 00:02:32,100 --> 00:02:33,140
 so please support your
 
-73
+103
 00:02:33,140 --> 00:02:34,260
 colleagues who are living with
 
-74
+104
 00:02:34,260 --> 00:02:35,950
 diabetes. Thank you.

@@ -56,7 +56,7 @@ ScaledBorderAndShadow: yes
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 Style: Face,Inter SemiBold,28,&H00FFFFFF,&H00FFFFFF,&H00000000,&H8C000000,0,0,0,0,100,100,0,0,1,0,1.4,2,60,60,40,1
-Style: Graphic,Inter SemiBold,19,&H00303030,&H00303030,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,0,0,2,60,60,10,1
+Style: Graphic,Inter SemiBold,23,&H00383838,&H00383838,&H00FFFFFF,&H00FFFFFF,0,0,0,0,100,100,0,0,1,2,0,2,60,60,14,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -66,9 +66,9 @@ for n, p in enumerate(phrases):
     start = p[0]['start']
     nxt = phrases[n + 1][0]['start'] if n + 1 < len(phrases) else p[-1]['end'] + 1
     end = min(p[-1]['end'] + 0.35, nxt)
-    if in_graphic(start):
-        continue  # graphics carry their own text on screen
-    style = 'Face'
+    # captions run the whole way through; over a white full-screen graphic they
+    # switch to dark text tucked at the very bottom, clear of the graphic's own copy
+    style = 'Graphic' if in_graphic(start) else 'Face'
     parts = []
     for w in p:
         a = int((w['start'] - start) * 1000)
